@@ -333,6 +333,9 @@ Engine re-verification against CRA / Ontario / FSRA is an ongoing maintenance du
 | Scenario compare, sensitivity, spend-to-zero | UI tools |
 | GitHub Pages demo + CI | Open-source packaging |
 | Longevity scenario grid | Deterministic both-live vs first-death at ages 75/85/95 (strategy pins held fixed) |
+| Spousal unused credit transfer | Simplified BPA/age/pension credit pool between spouses |
+| Ontario EAT sketch | Probate upper-bound metric (not deducted from estate search objective) |
+| GIS couple-aware sketch | Single vs partner max + combined-income reduction |
 
 ### 16.2 Still open (v2+)
 
@@ -343,7 +346,7 @@ Engine re-verification against CRA / Ontario / FSRA is an ongoing maintenance du
 | Full CPP/OAS multi-objective optimizer | Grid exists; not MC-aware global search |
 | Probate/EAT, RESP, FHSA, spousal RRSP, CPP assignment | |
 | Non-eligible dividends, corporate accounts, US withholding | |
-| AMT, full unused credit transfers, monthly steps | |
+| AMT, line-by-line Schedule 2 credits, monthly steps | Simplified spousal unused personal-credit pool is shipped |
 | True wage indexation of limits | CPI proxy in v1 for wage-flagged items |
 | French UI, multi-user backend, branded PDF | HTML/CSV export exists |
 | Global DP tax optimizer | Ceiling C heuristic remains product choice |
@@ -352,7 +355,7 @@ Engine re-verification against CRA / Ontario / FSRA is an ongoing maintenance du
 
 ## 17. Explicit simplifications register
 
-Annual steps; mid-year cash flows; same-year OAS clawback; annual (not quarterly) benefit indexation; TFSA smooth indexation; wage limits treated as CPI in v1; returns i.i.d. and independent of inflation; strategy tuned on expected path only (MC pins that policy); credits at lowest rate; no inter-spousal unused credit transfer; CPP/EI payroll optional approx only; GIS rough sketch; estate tax unsplit baseline; LIF max table held constant while reference rates keep the 6% floor binding; fees in returns; `taxableIncomePreSplit` used for bracket display (split optimizes tax but year row stores pre-split taxable field).
+Annual steps; mid-year cash flows; same-year OAS clawback; annual (not quarterly) benefit indexation; TFSA smooth indexation; wage limits treated as CPI in v1; returns i.i.d. and independent of inflation; strategy tuned on expected path only (MC pins that policy); credits at lowest rate; unused personal-credit tax transferred as a simplified pool (not full Schedule 2 lines); CPP/EI payroll optional approx only; GIS annual sketch (not quarterly CRA tables); estate tax unsplit baseline; Ontario EAT is an upper-bound sketch not subtracted from afterTaxEstate; LIF max table held constant while reference rates keep the 6% floor binding; fees in returns; `taxableIncomePreSplit` used for bracket display (split optimizes tax but year row stores pre-split taxable field).
 
 ---
 

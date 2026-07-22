@@ -15,8 +15,9 @@
  *      anchor): brackets − 5.05% × personal credits → SURTAX on that amount →
  *      subtract Ontario DTC → Ontario tax reduction → add Health Premium
  *
- * v1 simplifications (design §17): credits at the lowest rate, no
- * inter-spousal credit transfers, no AMT/TOSI, no medical/charitable credits,
+ * Simplifications (design §17): credits at the lowest rate; spousal transfer of
+ * *unused* non-refundable personal credit tax (BPA/age/pension pool model — not
+ * line-by-line Schedule 2); no AMT/TOSI; no medical/charitable credits;
  * federal Top-Up Tax Credit not modelled (immaterial at this credit mix).
  */
 
@@ -66,6 +67,16 @@ export interface TaxResult {
   netIncomeBeforeAdjustments: number; // line 23400
   netIncome: number;                  // line 23600
   taxableIncome: number;
+  /**
+   * Unused federal personal-credit tax (lowest-rate × BPA/age/pension) after
+   * offsetting federal tax before those credits (DTC already applied separately).
+   * Available for simplified spousal transfer.
+   */
+  unusedFederalCreditTax: number;
+  /** Unused Ontario basic personal-credit tax (before surtax/DTC/OHP). */
+  unusedOntarioCreditTax: number;
+  /** Ontario Health Premium component of ontarioTax (not transferable). */
+  ontarioHealthPremium: number;
   breakdown: {
     grossedUpDividends: number;
     taxableCapitalGains: number;
@@ -145,6 +156,8 @@ const EMPTY_BREAKDOWN: TaxResult["breakdown"] = Object.freeze({
 const LEAN_RESULT: TaxResult = {
   federalTax: 0, ontarioTax: 0, oasClawback: 0, totalTax: 0,
   netIncomeBeforeAdjustments: 0, netIncome: 0, taxableIncome: 0,
+  unusedFederalCreditTax: 0, unusedOntarioCreditTax: 0,
+  ontarioHealthPremium: 0,
   breakdown: EMPTY_BREAKDOWN,
 };
 
@@ -208,10 +221,10 @@ export function computeTax(
     (is65 ? ageAmount(netIncome, F.ageAmount, F.ageAmountThreshold, F.ageAmountPhaseOutRate) : 0) +
     Math.min(F.pensionIncomeAmount, eligiblePensionIncomeForCredit);
   const federalDtc = F.dividendDtc * grossedUpDividends;
-  const federalTax = Math.max(
-    0,
-    federalBeforeCredits - F.creditRate * fedCreditsAmount - federalDtc
-  );
+  const fedPersonalCreditTax = F.creditRate * fedCreditsAmount;
+  const fedTaxAfterDtc = Math.max(0, federalBeforeCredits - federalDtc);
+  const federalTax = Math.max(0, fedTaxAfterDtc - fedPersonalCreditTax);
+  const unusedFederalCreditTax = Math.max(0, fedPersonalCreditTax - fedTaxAfterDtc);
 
   // --- 6. Ontario tax (ON428 ordering) ---------------------------------------
   const ontarioBeforeCredits = bracketTax(taxableIncome, O.brackets);
@@ -219,7 +232,9 @@ export function computeTax(
     O.bpa +
     (is65 ? ageAmount(netIncome, O.ageAmount, O.ageAmountThreshold, O.ageAmountPhaseOutRate) : 0) +
     Math.min(O.pensionIncomeAmount, eligiblePensionIncomeForCredit);
-  const ontarioBasicTax = Math.max(0, ontarioBeforeCredits - O.creditRate * onCreditsAmount);
+  const onPersonalCreditTax = O.creditRate * onCreditsAmount;
+  const ontarioBasicTax = Math.max(0, ontarioBeforeCredits - onPersonalCreditTax);
+  const unusedOntarioCreditTax = Math.max(0, onPersonalCreditTax - ontarioBeforeCredits);
   const ontarioSurtax =
     O.surtaxR1 * Math.max(0, ontarioBasicTax - O.surtaxT1) +
     O.surtaxR2 * Math.max(0, ontarioBasicTax - O.surtaxT2);
@@ -242,11 +257,16 @@ export function computeTax(
     LEAN_RESULT.netIncomeBeforeAdjustments = netIncomeBeforeAdjustments;
     LEAN_RESULT.netIncome = netIncome;
     LEAN_RESULT.taxableIncome = taxableIncome;
+    LEAN_RESULT.unusedFederalCreditTax = unusedFederalCreditTax;
+    LEAN_RESULT.unusedOntarioCreditTax = unusedOntarioCreditTax;
+    LEAN_RESULT.ontarioHealthPremium = ontarioHealthPremiumAmt;
     return LEAN_RESULT;
   }
   return {
     federalTax, ontarioTax, oasClawback, totalTax,
     netIncomeBeforeAdjustments, netIncome, taxableIncome,
+    unusedFederalCreditTax, unusedOntarioCreditTax,
+    ontarioHealthPremium: ontarioHealthPremiumAmt,
     breakdown: {
       grossedUpDividends, taxableCapitalGains,
       federalBeforeCredits, federalPersonalCredits: fedCreditsAmount, federalDtc,
@@ -256,6 +276,94 @@ export function computeTax(
       eligiblePensionIncomeForCredit,
     },
   };
+}
+
+/**
+ * Transfer unused non-refundable personal-credit tax between spouses (simplified).
+ * Models the idea of Schedule 2 transfers for age/pension/BPA-type credits as a
+ * single pool — not line-by-line CRA forms. Does not transfer DTC, OHP, or OAS clawback.
+ */
+export function applySpousalCreditTransfers(
+  a: TaxResult,
+  b: TaxResult
+): {
+  a: TaxResult;
+  b: TaxResult;
+  federalTransferred: number;
+  ontarioTransferred: number;
+} {
+  const clone = (r: TaxResult): TaxResult => ({
+    ...r,
+    breakdown: { ...r.breakdown },
+  });
+  const outA = clone(a);
+  const outB = clone(b);
+
+  // Federal: A's unused → B's federal tax; B's unused → A's federal tax
+  const fedAB = Math.min(outA.unusedFederalCreditTax, outB.federalTax);
+  const fedBA = Math.min(outB.unusedFederalCreditTax, outA.federalTax);
+  outB.federalTax -= fedAB;
+  outA.unusedFederalCreditTax -= fedAB;
+  outA.federalTax -= fedBA;
+  outB.unusedFederalCreditTax -= fedBA;
+
+  // Ontario income tax portion (exclude OHP — cannot be transferred)
+  const onTaxA = Math.max(0, outA.ontarioTax - outA.ontarioHealthPremium);
+  const onTaxB = Math.max(0, outB.ontarioTax - outB.ontarioHealthPremium);
+  const onAB = Math.min(outA.unusedOntarioCreditTax, onTaxB);
+  const onBA = Math.min(outB.unusedOntarioCreditTax, onTaxA);
+  outB.ontarioTax -= onAB;
+  outA.unusedOntarioCreditTax -= onAB;
+  outA.ontarioTax -= onBA;
+  outB.unusedOntarioCreditTax -= onBA;
+
+  outA.totalTax = outA.federalTax + outA.ontarioTax + outA.oasClawback;
+  outB.totalTax = outB.federalTax + outB.ontarioTax + outB.oasClawback;
+
+  return {
+    a: outA,
+    b: outB,
+    federalTransferred: fedAB + fedBA,
+    ontarioTransferred: onAB + onBA,
+  };
+}
+
+/** Household total tax after simplified spousal credit transfer (snapshots). */
+export function householdTaxAfterCreditTransfer(
+  a: Pick<
+    TaxResult,
+    | "federalTax"
+    | "ontarioTax"
+    | "oasClawback"
+    | "unusedFederalCreditTax"
+    | "unusedOntarioCreditTax"
+    | "ontarioHealthPremium"
+  >,
+  b: Pick<
+    TaxResult,
+    | "federalTax"
+    | "ontarioTax"
+    | "oasClawback"
+    | "unusedFederalCreditTax"
+    | "unusedOntarioCreditTax"
+    | "ontarioHealthPremium"
+  >
+): number {
+  const fedAB = Math.min(a.unusedFederalCreditTax, b.federalTax);
+  const fedBA = Math.min(b.unusedFederalCreditTax, a.federalTax);
+  const onTaxA = Math.max(0, a.ontarioTax - a.ontarioHealthPremium);
+  const onTaxB = Math.max(0, b.ontarioTax - b.ontarioHealthPremium);
+  const onAB = Math.min(a.unusedOntarioCreditTax, onTaxB);
+  const onBA = Math.min(b.unusedOntarioCreditTax, onTaxA);
+  return (
+    a.federalTax -
+    fedBA +
+    (a.ontarioTax - onBA) +
+    a.oasClawback +
+    (b.federalTax - fedAB) +
+    (b.ontarioTax - onAB) +
+    b.oasClawback
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -296,9 +404,27 @@ export function optimizeHouseholdTax(
     return { rFrom, rTo, amt, total: rFrom.totalTax + rTo.totalTax };
   };
 
+  const packAB = (
+    ra: TaxResult,
+    rb: TaxResult,
+    dir: "AtoB" | "BtoA" | "none",
+    amt: number,
+    frac: number
+  ): HouseholdTaxResult => {
+    const t = applySpousalCreditTransfers(ra, rb);
+    return {
+      a: t.a,
+      b: t.b,
+      totalTax: t.a.totalTax + t.b.totalTax,
+      splitAmount: amt,
+      splitFraction: frac,
+      splitDirection: dir,
+    };
+  };
+
   let best: HouseholdTaxResult = (() => {
     const a = computeTax(pa, {}, policy), b = computeTax(pb, {}, policy);
-    return { a, b, totalTax: a.totalTax + b.totalTax, splitAmount: 0, splitFraction: 0, splitDirection: "none" as const };
+    return packAB(a, b, "none", 0, 0);
   })();
 
   for (const dir of ["AtoB", "BtoA"] as const) {
@@ -306,20 +432,24 @@ export function optimizeHouseholdTax(
     if (splittableIncome(from).total <= 0) continue;
     let bestFrac = 0, bestTotal = Infinity;
     for (let f = 0; f <= 0.5 + 1e-9; f += 0.01) {
-      const { total } = evalSplit(from, to, f);
+      const { rFrom, rTo, total: _raw } = evalSplit(from, to, f);
+      const ra = dir === "AtoB" ? rFrom : rTo;
+      const rb = dir === "AtoB" ? rTo : rFrom;
+      const total = householdTaxAfterCreditTransfer(ra, rb);
       if (total < bestTotal - 1e-9) { bestTotal = total; bestFrac = f; }
     }
     for (let f = Math.max(0, bestFrac - 0.01); f <= Math.min(0.5, bestFrac + 0.01) + 1e-9; f += 0.001) {
-      const { total } = evalSplit(from, to, f);
+      const { rFrom, rTo } = evalSplit(from, to, f);
+      const ra = dir === "AtoB" ? rFrom : rTo;
+      const rb = dir === "AtoB" ? rTo : rFrom;
+      const total = householdTaxAfterCreditTransfer(ra, rb);
       if (total < bestTotal - 1e-9) { bestTotal = total; bestFrac = f; }
     }
     if (bestTotal < best.totalTax - 1e-9) {
-      const { rFrom, rTo, amt, total } = evalSplit(from, to, bestFrac);
-      best = {
-        a: dir === "AtoB" ? rFrom : rTo,
-        b: dir === "AtoB" ? rTo : rFrom,
-        totalTax: total, splitAmount: amt, splitFraction: bestFrac, splitDirection: dir,
-      };
+      const { rFrom, rTo, amt } = evalSplit(from, to, bestFrac);
+      const ra = dir === "AtoB" ? rFrom : rTo;
+      const rb = dir === "AtoB" ? rTo : rFrom;
+      best = packAB(ra, rb, dir, amt, bestFrac);
     }
   }
   return best;

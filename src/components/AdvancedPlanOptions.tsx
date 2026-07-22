@@ -120,7 +120,7 @@ export function AdvancedPlanOptions({
             checked={!!input.gis?.enabled}
             onChange={(e) => set({ gis: e.target.checked ? { enabled: true } : undefined })}
           />
-          <span>Rough GIS estimate (low income + OAS)</span>
+          <span>GIS estimate (OAS + other-income reduction; couple-aware)</span>
         </label>
         <label className="check-row">
           <input

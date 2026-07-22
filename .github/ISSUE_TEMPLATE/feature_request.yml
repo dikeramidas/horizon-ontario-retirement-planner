@@ -1,0 +1,38 @@
+name: Feature request
+description: Suggest an improvement to Horizon
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the user problem first. See `retirement-planner-design.md` §16 for the roadmap.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What planning question is hard or impossible today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How might Horizon help? UI sketch, engine change, or both.
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Importance to you
+      options:
+        - Nice to have
+        - Would use regularly
+        - Blocking my use of Horizon
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds, other tools, or design constraints.

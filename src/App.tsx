@@ -1704,6 +1704,16 @@ export function App() {
                   </p>
                 )}
 
+                {displayResult?.estateAdminTaxReal != null && displayResult.estateAdminTaxReal > 0 && (
+                  <p className="hint" data-testid="probate-note">
+                    Ontario estate administration tax sketch (real, upper-bound if all wealth went
+                    through probate):{" "}
+                    <strong>{money(displayResult.estateAdminTaxReal)}</strong>
+                    . Not deducted from after-tax estate metric; beneficiary designations / joint
+                    ownership can eliminate most of this.
+                  </p>
+                )}
+
                 {displayResult?.firstDeathYear != null && (
                   <p className="hint" data-testid="first-death-note">
                     First death modeled end of <strong>{displayResult.firstDeathYear}</strong>

@@ -8,6 +8,7 @@ import { describe, it, expect } from "vitest";
 import {
   computeTax, optimizeHouseholdTax, marginalRate,
   ontarioHealthPremium, federalBpa, bracketTax,
+  applySpousalCreditTransfers,
   type PersonIncome,
 } from "../src/tax";
 import { FEDERAL, ONTARIO, VALIDATION_ANCHORS as A } from "../src/constants-2026";
@@ -321,5 +322,32 @@ describe("structural invariants", () => {
     const noDed = computeTax(worker({ employment: 130_000 }));
     const ded = computeTax(worker({ employment: 130_000, rrspDeduction: 10_000 }));
     expect(noDed.totalTax - ded.totalTax).toBeCloseTo(10_000 * (0.26 + 0.1116 * 1.56), 0); // 4,340.96
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Spousal unused personal-credit transfer (simplified pool)
+// ---------------------------------------------------------------------------
+describe("spousal credit transfer", () => {
+  it("moves unused personal-credit tax to a taxed spouse", () => {
+    // Low-income senior: large unused credits; high earner: material federal tax
+    const low = computeTax(senior({ cpp: 2_000, oas: 8_000 }));
+    const high = computeTax(worker({ employment: 120_000 }));
+    expect(low.unusedFederalCreditTax).toBeGreaterThan(100);
+    expect(high.federalTax).toBeGreaterThan(1_000);
+    const before = low.totalTax + high.totalTax;
+    const { a, b, federalTransferred } = applySpousalCreditTransfers(low, high);
+    expect(federalTransferred).toBeGreaterThan(0);
+    expect(a.totalTax + b.totalTax).toBeLessThan(before - 50);
+    expect(b.federalTax).toBeLessThan(high.federalTax);
+  });
+
+  it("optimizeHouseholdTax never exceeds no-transfer household tax", () => {
+    const pa = senior({ cpp: 5_000, oas: 9_000, rrifLifIncome: 12_000 });
+    const pb = worker({ employment: 95_000 });
+    const raw =
+      computeTax(pa).totalTax + computeTax(pb).totalTax;
+    const opt = optimizeHouseholdTax(pa, pb);
+    expect(opt.totalTax).toBeLessThanOrEqual(raw + 1e-6);
   });
 });

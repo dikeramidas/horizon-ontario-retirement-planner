@@ -23,7 +23,15 @@
  *  bisection candidate, at ~15× fewer tax evaluations.
  */
 
-import { computeTax, type PersonIncome, type TaxResult } from "./tax";
+import {
+  applySpousalCreditTransfers,
+  computeTax,
+  householdTaxAfterCreditTransfer,
+  type PersonIncome,
+  type TaxResult,
+} from "./tax";
+import { estimateGis } from "./lib/gis";
+import { ontarioEstateAdminTax } from "./lib/estateAdminTax";
 import { buildYearPolicy, type YearPolicy } from "./policy";
 import {
   allocateDiscretionaryW,
@@ -276,6 +284,12 @@ export interface SimulationResult {
   /** B5: terminal home value included in estate (today’s $ real if deflated by final CPI). */
   housingEstateNominal?: number;
   housingEstateReal?: number;
+  /**
+   * Ontario Estate Administration Tax sketch on after-tax financial estate
+   * (upper-bound style; not subtracted from afterTaxEstate).
+   */
+  estateAdminTax?: number;
+  estateAdminTaxReal?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -401,9 +415,22 @@ type SplitDir = "AtoB" | "BtoA" | "none";
 
 const SCRATCH_OUT = { transferredOut: 0 };
 const SCRATCH_IN = { receivedIn: 0, receivedDbShare: 0 };
+function snapTax(r: TaxResult) {
+  return {
+    federalTax: r.federalTax,
+    ontarioTax: r.ontarioTax,
+    oasClawback: r.oasClawback,
+    unusedFederalCreditTax: r.unusedFederalCreditTax,
+    unusedOntarioCreditTax: r.unusedOntarioCreditTax,
+    ontarioHealthPremium: r.ontarioHealthPremium,
+  };
+}
+
 function taxPairAt(policy: YearPolicy, inc0: PersonIncome, inc1: PersonIncome, f: number, dir: SplitDir): number {
   if (dir === "none" || f <= 0) {
-    return computeTax(inc0, EMPTY_SPLIT, policy, true).totalTax + computeTax(inc1, EMPTY_SPLIT, policy, true).totalTax;
+    const a = snapTax(computeTax(inc0, EMPTY_SPLIT, policy, true));
+    const b = snapTax(computeTax(inc1, EMPTY_SPLIT, policy, true));
+    return householdTaxAfterCreditTransfer(a, b);
   }
   const from = dir === "AtoB" ? inc0 : inc1;
   const to = dir === "AtoB" ? inc1 : inc0;
@@ -411,23 +438,48 @@ function taxPairAt(policy: YearPolicy, inc0: PersonIncome, inc1: PersonIncome, f
   SCRATCH_OUT.transferredOut = s.total * f;
   SCRATCH_IN.receivedIn = s.total * f;
   SCRATCH_IN.receivedDbShare = s.dbShare;
-  return computeTax(from, SCRATCH_OUT, policy, true).totalTax +
-         computeTax(to, SCRATCH_IN, policy, true).totalTax;
+  const rFrom = snapTax(computeTax(from, SCRATCH_OUT, policy, true));
+  const rTo = snapTax(computeTax(to, SCRATCH_IN, policy, true));
+  // Map back to person order (0, 1) for transfer helper
+  const a = dir === "AtoB" ? rFrom : rTo;
+  const b = dir === "AtoB" ? rTo : rFrom;
+  return householdTaxAfterCreditTransfer(a, b);
 }
 const EMPTY_SPLIT = Object.freeze({});
 
-/** Full (breakdown-bearing) household tax at the chosen split, for records. */
-function finalizePair(policy: YearPolicy, inc0: PersonIncome, inc1: PersonIncome, f: number, dir: SplitDir): { a: TaxResult; b: TaxResult; splitAmount: number } {
+/** Full household tax at the chosen split: raw per-person + after spousal credit transfer. */
+function finalizePair(
+  policy: YearPolicy,
+  inc0: PersonIncome,
+  inc1: PersonIncome,
+  f: number,
+  dir: SplitDir
+): {
+  a: TaxResult;
+  b: TaxResult;
+  aRaw: TaxResult;
+  bRaw: TaxResult;
+  splitAmount: number;
+} {
+  let aRaw: TaxResult;
+  let bRaw: TaxResult;
+  let splitAmount = 0;
   if (dir === "none" || f <= 0) {
-    return { a: computeTax(inc0, EMPTY_SPLIT, policy), b: computeTax(inc1, EMPTY_SPLIT, policy), splitAmount: 0 };
+    aRaw = computeTax(inc0, EMPTY_SPLIT, policy);
+    bRaw = computeTax(inc1, EMPTY_SPLIT, policy);
+  } else {
+    const from = dir === "AtoB" ? inc0 : inc1;
+    const to = dir === "AtoB" ? inc1 : inc0;
+    const s = splittableOf(from);
+    const amt = s.total * f;
+    splitAmount = amt;
+    const rFrom = computeTax(from, { transferredOut: amt }, policy);
+    const rTo = computeTax(to, { receivedIn: amt, receivedDbShare: s.dbShare }, policy);
+    aRaw = dir === "AtoB" ? rFrom : rTo;
+    bRaw = dir === "AtoB" ? rTo : rFrom;
   }
-  const from = dir === "AtoB" ? inc0 : inc1;
-  const to = dir === "AtoB" ? inc1 : inc0;
-  const s = splittableOf(from);
-  const amt = s.total * f;
-  const rFrom = computeTax(from, { transferredOut: amt }, policy);
-  const rTo = computeTax(to, { receivedIn: amt, receivedDbShare: s.dbShare }, policy);
-  return { a: dir === "AtoB" ? rFrom : rTo, b: dir === "AtoB" ? rTo : rFrom, splitAmount: amt };
+  const t = applySpousalCreditTransfers(aRaw, bRaw);
+  return { a: t.a, b: t.b, aRaw, bRaw, splitAmount };
 }
 
 
@@ -646,13 +698,7 @@ function approxPayroll(salary: number, ympe: number): number {
   return cpp + ei;
 }
 
-/** B6: very rough GIS — declines with other income once OAS is in pay. */
-function approxGis(oasGross: number, otherIncome: number, cpi: number): number {
-  if (oasGross <= 0) return 0;
-  const maxGis = 11_000 * cpi; // ballpark single max annual, scaled
-  const thr = 22_000 * cpi;
-  return Math.max(0, maxGis - 0.5 * Math.max(0, otherIncome - thr));
-}
+
 
 function streamsAndMins(
   s: PState, spouse: PState, year: number, yIdx: number, cpi: number,
@@ -921,10 +967,24 @@ export function simulate(input: HouseholdInput): SimulationResult {
       }
     }
     if (input.gis?.enabled) {
-      for (const p of py) {
-        const other = p.salary + p.cpp + p.db;
-        p.gis = approxGis(p.oasGross, other, cpi);
-      }
+      const otherOf = (p: PersonYear) =>
+        p.salary + p.cpp + p.db + p.interest + p.dividends + p.rrifMin + p.lifMin;
+      const o0 = otherOf(py[0]);
+      const o1 = otherOf(py[1]);
+      py[0].gis = estimateGis({
+        oasGross: py[0].oasGross,
+        otherIncome: o0,
+        spouseHasOas: py[1].oasGross > 0 && st[1].alive,
+        spouseOtherIncome: o1,
+        cpi,
+      });
+      py[1].gis = estimateGis({
+        oasGross: py[1].oasGross,
+        otherIncome: o1,
+        spouseHasOas: py[0].oasGross > 0 && st[0].alive,
+        spouseOtherIncome: o0,
+        cpi,
+      });
     }
 
     // ---- E. Solver ----------------------------------------------------------
@@ -1161,6 +1221,7 @@ export function simulate(input: HouseholdInput): SimulationResult {
 
     lifetimeTax += householdTax;
     const results = [finalPair.a, finalPair.b];
+    const rawResults = [finalPair.aRaw, finalPair.bRaw];
     for (const i of [0, 1]) {
       const p = py[i];
       p.withdrawals.unregistered = ev.tU[i];
@@ -1175,9 +1236,11 @@ export function simulate(input: HouseholdInput): SimulationResult {
         federal: results[i].federalTax, ontario: results[i].ontarioTax,
         clawback: results[i].oasClawback, total: results[i].totalTax,
       };
+      // RRSP refund is individual (pre spousal credit transfer) so the
+      // deduction's own tax value is not mixed with spouse unused credits.
       if (p.rrspDeduction > 0) {
         const noDed = computeTax({ ...ev.inc[i], rrspDeduction: 0 }, {}, policy, true).totalTax;
-        st[i].pendingRefund = noDed - results[i].totalTax;
+        st[i].pendingRefund = Math.max(0, noDed - rawResults[i].totalTax);
       }
     }
 
@@ -1308,6 +1371,9 @@ export function simulate(input: HouseholdInput): SimulationResult {
   }
 
   const afterTaxEstate = gross - estateTax;
+  // Ontario EAT sketch on after-tax estate (housing already in gross / after-tax).
+  // Not subtracted from afterTaxEstate so strategy search stays comparable; surfaced for UI.
+  const estateAdminTax = ontarioEstateAdminTax(Math.max(0, afterTaxEstate));
 
   return {
     rows, failedAnyYear, firstFailureYear, lifetimeTax,
@@ -1319,5 +1385,7 @@ export function simulate(input: HouseholdInput): SimulationResult {
     housingEstateNominal: housingEstateNominal > 0 ? housingEstateNominal : undefined,
     housingEstateReal:
       housingEstateNominal > 0 ? housingEstateNominal / finalCpi : undefined,
+    estateAdminTax: estateAdminTax > 0 ? estateAdminTax : undefined,
+    estateAdminTaxReal: estateAdminTax > 0 ? estateAdminTax / finalCpi : undefined,
   };
 }

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Design & simplifications
+    url: https://github.com/dikeramidas/horizon-ontario-retirement-planner/blob/main/retirement-planner-design.md
+    about: Product decisions and known modelling limits
+  - name: Contributing guide
+    url: https://github.com/dikeramidas/horizon-ontario-retirement-planner/blob/main/CONTRIBUTING.md
+    about: How to run tests and open a PR

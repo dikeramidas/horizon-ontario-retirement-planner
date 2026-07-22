@@ -308,7 +308,41 @@ export const VALIDATION_ANCHORS = {
 } as const;
 
 // ---------------------------------------------------------------------------
-// 8. ECONOMIC DEFAULTS (user-editable in UI; not policy — no source pinning)
+// 8. GIS + ONTARIO ESTATE ADMINISTRATION TAX (planning sketches)
+// ---------------------------------------------------------------------------
+
+/**
+ * GIS maxima are approximate annualized figures for engine use (not a full
+ * quarterly CRA table). Indexed with CPI along the path. Reduction is the
+ * familiar ~50% of other income (OAS/GIS excluded from "other").
+ */
+export const GIS = {
+  maxAnnualSingle: src(
+    11_496,
+    "ESDC GIS order-of-magnitude (annualized single max ≈ planning sketch)",
+    "cpi",
+    "Not a pin of a specific month's payment; re-check on policy refresh."
+  ),
+  maxAnnualPartner: src(
+    6_918,
+    "ESDC GIS order-of-magnitude (annualized partner max when both on OAS)",
+    "cpi"
+  ),
+  reductionRate: src(0.5, "canada.ca GIS income reduction (50¢ per $1)", "frozen"),
+} as const;
+
+/**
+ * Ontario Estate Administration Tax schedule (continuous form).
+ * First $50k at $5/$1,000; remainder at $15/$1,000.
+ */
+export const ONTARIO_EAT = {
+  threshold: src(50_000, "Ontario EAT first band", "frozen"),
+  rateFirstBand: src(0.005, "Ontario EAT $5 per $1,000 on first $50k", "frozen"),
+  rateAboveThreshold: src(0.015, "Ontario EAT $15 per $1,000 above $50k", "frozen"),
+} as const;
+
+// ---------------------------------------------------------------------------
+// 9. ECONOMIC DEFAULTS (user-editable in UI; not policy — no source pinning)
 // ---------------------------------------------------------------------------
 
 export const ECON_DEFAULTS = {

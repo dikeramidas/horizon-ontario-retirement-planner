@@ -1,0 +1,52 @@
+name: Bug report
+description: Something incorrect or broken in Horizon
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting an issue. Horizon is a **planning estimate** tool — tax results are simplified models, not CRA assessments.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you saw vs what you expected.
+      placeholder: e.g. Funded years dropped after enabling GIS when income is low…
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Prefer the sample couple or minimal custom inputs (no real personal data required).
+      placeholder: |
+        1. Open demo / npm run dev
+        2. Run full plan
+        3. …
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Engine (tax / simulate / MC)
+        - Strategy (C / TFSA / person policy)
+        - UI / charts / tables
+        - Export / scenarios / persistence
+        - Docs / CI / demo
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: Browser and/or Node version; local vs GitHub Pages demo.
+      placeholder: Chrome 128 · local npm run dev
+  - type: textarea
+    id: extra
+    attributes:
+      label: Extra context
+      description: Screenshots, console errors, or links to related issues.

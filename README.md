@@ -18,7 +18,7 @@ optimization, RRSP/RRIF meltdown strategy, and seeded Monte Carlo.
 
 ## License
 
-This project is open source under the [MIT License](LICENSE). See [CONTRIBUTING.md](CONTRIBUTING.md) if you’d like to help.
+This project is open source under the [MIT License](LICENSE). See [CONTRIBUTING.md](CONTRIBUTING.md) if you’d like to help, and [CHANGELOG.md](CHANGELOG.md) for release notes.
 
 ## Run the app locally
 
