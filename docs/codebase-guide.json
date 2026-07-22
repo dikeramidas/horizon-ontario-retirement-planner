@@ -1,0 +1,708 @@
+{
+  "meta": {
+    "title": "Horizon — Ontario Couple Retirement Planner",
+    "docType": "codebase-guide-for-agents",
+    "version": "2.0.0",
+    "generatedForDate": "2026-07-22",
+    "packageName": "ontario-couple-retirement-planner",
+    "primaryLanguage": "TypeScript",
+    "framework": "React 19 + Vite 6 + Vitest 3",
+    "workspaceRoot": ".",
+    "companionHumanDoc": "docs/codebase-guide.html",
+    "relatedDocs": [
+      "README.md",
+      "retirement-planner-design.md",
+      "docs/ANNUAL-POLICY-REFRESH.md",
+      "docs/codebase-guide.html"
+    ],
+    "disclaimer": "Estimates only — not financial, tax, or legal advice. Engine uses pinned 2026 federal + Ontario policy with documented simplifications.",
+    "howToUseThisDoc": [
+      "Read meta + purpose + architecture first for orientation.",
+      "Use modules[] for file-level roles and key exports before opening source.",
+      "Use coreDataFlows[] when tracing a UI action to engine output.",
+      "Use strategySemantics + invariants when changing tax/meltdown/TFSA logic.",
+      "Use conventionsForAgents + extensionHints before editing; avoid strategy object replacement.",
+      "After changes, run npm test; prefer driving real simulate/analyzePlan/runMonteCarlo in new tests."
+    ]
+  },
+
+  "purpose": {
+    "summary": "Client-side SPA that projects a two-person Ontario household through accumulation and retirement: federal+Ontario tax, RRSP/RRIF/LIF, TFSA, CPP/OAS, strategy search (meltdown C), Monte Carlo, and rich results UI.",
+    "productName": "Horizon",
+    "primaryQuestions": [
+      "Can this lifestyle be funded for life on the expected path?",
+      "Where does money come from each year (person × account)?",
+      "What tax-aware withdrawal/meltdown strategy beats naive C=0?",
+      "What is the Monte Carlo success rate under market noise?"
+    ],
+    "nonGoals": [
+      "Global dynamic-programming multi-decade tax optimum",
+      "Backend / multi-user accounts / server persistence",
+      "Full CRA form fidelity for every credit and form",
+      "Stock/ETF ticker portfolio with live market data",
+      "Multi-province or non-Ontario tax regimes"
+    ]
+  },
+
+  "architecture": {
+    "pattern": "Layered pure-TS engine + React UI; optional Web Worker for long jobs",
+    "dataLocality": "All data on-device (localStorage drafts/scenarios); no backend",
+    "publicEngineEntry": "src/engine-entry.ts",
+    "appEntry": "src/main.tsx → src/App.tsx",
+    "layers": [
+      {
+        "id": "policy",
+        "path": "src/constants-2026.ts, src/policy.ts",
+        "role": "Pinned 2026 statutory constants with sources; CPI-scale to YearPolicy"
+      },
+      {
+        "id": "tax",
+        "path": "src/tax.ts",
+        "role": "Federal + Ontario tax, OAS clawback, pension-split search"
+      },
+      {
+        "id": "simulate",
+        "path": "src/simulate.ts",
+        "role": "Deterministic lifetime path, spending solver, top-ups, TFSA surplus, optional modules"
+      },
+      {
+        "id": "mc",
+        "path": "src/mc.ts",
+        "role": "Seeded Monte Carlo paths + flat tuneStrategy (C grid)"
+      },
+      {
+        "id": "analysis",
+        "path": "src/lib/analysis.ts, src/lib/tuneBandedC.ts, src/lib/tfsaTune.ts, src/lib/personPolicy.ts",
+        "role": "Product orchestration: banded C, person ceilings, L4 share, MC pins"
+      },
+      {
+        "id": "worker",
+        "path": "src/workers/engineWorker.ts, src/lib/engineClient.ts",
+        "role": "Off-main-thread analyze / MC / spend-to-zero / compare with progress + cancel"
+      },
+      {
+        "id": "ui",
+        "path": "src/App.tsx, src/components/*, src/pages/*, src/styles/global.css",
+        "role": "Inputs, results, charts, tables, export, scenarios"
+      }
+    ],
+    "dependencyGraph": {
+      "App.tsx": ["engineClient", "analysis", "components/*", "validate", "draftStore", "scenarioStore", "lastPlanStore"],
+      "engineClient": ["engineWorker", "analysis", "mc", "spendToZero", "scenarioCompare"],
+      "engineWorker": ["analysis", "mc", "spendToZero", "scenarioCompare"],
+      "analysis": ["tuneBandedC", "tfsaTune", "personPolicy", "simulate", "validate", "estateTax", "tfsaPolicy"],
+      "tuneBandedC": ["mc.tuneStrategy", "simulate"],
+      "simulate": ["tax", "policy", "tfsaPolicy", "spendPlan", "housing", "personPolicy", "constants-2026"],
+      "mc": ["simulate", "constants-2026"],
+      "tax": ["policy / constants-2026 brackets"]
+    },
+    "approxLineCounts": {
+      "src/App.tsx": 1726,
+      "src/simulate.ts": 1323,
+      "src/tax.ts": 340,
+      "src/constants-2026.ts": 330,
+      "src/mc.ts": 307,
+      "src/policy.ts": 113,
+      "src/lib/* (helpers)": "~several thousand",
+      "tests + lib tests": "~2650"
+    }
+  },
+
+  "runCommands": {
+    "install": "npm install",
+    "dev": "npm run dev",
+    "devHosted": "npm run dev -- --host 127.0.0.1 --port 5173",
+    "test": "npm test",
+    "testWatch": "npm run test:watch",
+    "build": "npm run build",
+    "preview": "npm run preview",
+    "smoke": "npm run smoke"
+  },
+
+  "keyTypes": {
+    "HouseholdInput": {
+      "file": "src/simulate.ts",
+      "description": "Root plan input: lifestyle, strategy, optional modules, two PersonInput",
+      "importantFields": [
+        "spendingTargetToday",
+        "inflation",
+        "startYear",
+        "horizonAgeYoungerSpouse",
+        "yearsOverride",
+        "strategy",
+        "persons[0|1]",
+        "solverQuality",
+        "survivorship",
+        "housing",
+        "spendPhases",
+        "oneTimeGoals",
+        "gis",
+        "payroll",
+        "portfolio",
+        "path"
+      ]
+    },
+    "PersonInput": {
+      "file": "src/simulate.ts",
+      "description": "One spouse: ages, salary, savings, rooms, balances, CPP/OAS/DB, returns, unreg distribution, LIF unlock"
+    },
+    "HouseholdInput.strategy": {
+      "file": "src/simulate.ts",
+      "fields": {
+        "topUpCeilingToday": "Flat meltdown C in today's $",
+        "ceilingBands": "[{untilAge, ceilingToday}] by older spouse age",
+        "oasSoftCap": "Cap effective C at year OAS clawback threshold",
+        "tfsaLevel": "legacy | l1 | l2 | l3 | l4",
+        "tfsaReserveYears": "L3/L4 TFSA reserve in years of spend (default 2)",
+        "tfsaFirstShare": "L4 share of discretionary W from TFSA first (0..1)",
+        "personCeilingsToday": "[C0, C1] person-level meltdown",
+        "topUpPriority": "equal | prefer0 | prefer1 | higherReg",
+        "tfsaAwareMeltdown": "Scale top-ups to fit TFSA room"
+      }
+    },
+    "SimulationResult": {
+      "file": "src/simulate.ts",
+      "description": "Full path rows, lifetimeTax, afterTaxEstate / afterTaxEstateReal, failedAnyYear, firstDeath*, housingEstate*"
+    },
+    "YearRow / PersonYear": {
+      "file": "src/simulate.ts",
+      "description": "Per calendar year cashflow, tax, balancesEnd, roomsEnd, withdrawals, failed flag"
+    },
+    "PlanAnalysis": {
+      "file": "src/lib/analysis.ts",
+      "description": "analyzePlan output",
+      "fields": [
+        "primary",
+        "naive",
+        "tune",
+        "bestCeilingToday",
+        "bestCeilingBands",
+        "oasSoftCap",
+        "flatCeilingToday",
+        "personCeilingsToday",
+        "totalTaxSaving",
+        "estateRealGain",
+        "funded",
+        "tfsaTune"
+      ]
+    },
+    "TuneResult": {
+      "file": "src/mc.ts",
+      "description": "Flat C search: tuned, naive, bestCeilingToday, totalTaxSaving, estateRealGain, grid points"
+    },
+    "BandedTuneResult": {
+      "file": "src/lib/tuneBandedC.ts",
+      "description": "Extends TuneResult with bestCeilingBands, oasSoftCap, flatCeilingToday"
+    },
+    "MonteCarloConfig": {
+      "file": "src/mc.ts",
+      "fields": ["trials", "seed", "marketCorrelation", "vols", "defaultVol", "inflation", "onProgress"]
+    },
+    "MonteCarloResult": {
+      "file": "src/mc.ts",
+      "description": "successRate, estateReal p10/p50/p90, netWorthRealPercentiles, failures, trial stats"
+    },
+    "YearPolicy": {
+      "file": "src/policy.ts",
+      "description": "CPI-scaled brackets, credits, OAS threshold, TFSA/RRSP limits for one year"
+    },
+    "SimPath": {
+      "file": "src/simulate.ts",
+      "description": "Per-year inflation + per-account returns for MC trials"
+    },
+    "EngineJobResultMap": {
+      "file": "src/lib/engineClient.ts",
+      "ops": {
+        "analyze": "PlanAnalysis",
+        "montecarlo": "MonteCarloResult",
+        "spendToZero": "SpendToZeroResult",
+        "compare": "ScenarioCompareResult",
+        "prepareAndMc": "{ analysis, ceiling, tfsaFirstShare, household, mc }"
+      }
+    }
+  },
+
+  "coreDataFlows": [
+    {
+      "id": "full-plan",
+      "name": "Run full plan",
+      "uiTrigger": "App onAnalyze / auto-analyze sample",
+      "steps": [
+        "UI validates HouseholdInput (lib/validate.ts)",
+        "engineClient.analyzePlanAsync → worker op 'analyze' or main-thread fallback",
+        "analyzePlan: validate → prepareForAnalysis (clone, stripPhantomDb, solverQuality thorough)",
+        "resolve TFSA level default l4 + reserve years default 2",
+        "tuneStrategyBanded: flat C grid → age-band coordinate descent → OAS soft-cap",
+        "person ceilings = splitCeilingByRegistered(flatC, reg0, reg1); topUpPriority higherReg; tfsaAwareMeltdown true",
+        "re-simulate with person policy; if l4 then tuneTfsaShare",
+        "metrics vs naive C=0: totalTaxSaving = Δ(livingTax + estateTax), estateRealGain",
+        "UI sets det, tune, strategy fields; clears MC; saves last plan"
+      ],
+      "entry": "App → lib/engineClient → lib/analysis.analyzePlan"
+    },
+    {
+      "id": "simulate-year",
+      "name": "Single year in simulate()",
+      "steps": [
+        "CPI step; policyFor(cpi) / buildYearPolicy",
+        "RRIF/LIF conversions; room accrual",
+        "streamsAndMins: salary, CPP, OAS, DB, mins, unreg distributions",
+        "optional payroll + GIS",
+        "spending target (phases/goals × survivor frac × CPI)",
+        "optional home sale cash → unregistered",
+        "solve discretionary W for lifestyle (bisection + pension split; quality thorough|fast)",
+        "allocateDiscretionaryW per TFSA level",
+        "person-aware RRSP top-ups under C/bands/person ceilings; scaleTopUpsToTfsaRoom if tfsaAwareMeltdown",
+        "surplus → parkSurplusTfsaFirst then unregistered",
+        "growth mid-year: B1 = B0·(1+r) + netFlow·(1+r/2)",
+        "optional first-death rollover at year end"
+      ],
+      "entry": "src/simulate.ts simulate()"
+    },
+    {
+      "id": "monte-carlo",
+      "name": "Market stress test",
+      "steps": [
+        "prepareMonteCarloRun pins C, bands, oasSoftCap, TFSA share from analysis (or re-analyzes if stale)",
+        "householdForMonteCarlo sets solverQuality fast + strategy pins",
+        "runMonteCarlo: generateTrialPath (lognormal returns, optional AR1 inflation) → simulate each trial",
+        "success = share of trials with !failedAnyYear",
+        "UI shows p10/p50/p90 real estate + net-worth fan"
+      ],
+      "entry": "App.onMonteCarlo → prepareAndRunMonteCarloAsync / prepareMonteCarloRun + runMonteCarlo"
+    },
+    {
+      "id": "strategy-compare",
+      "name": "Tax-aware vs naive",
+      "description": "Naive = same household with topUpCeilingToday=0 (no deliberate meltdown bands). Metrics: living tax, estate tax, real estate, totalTaxSaving = Δ(living+estate tax)."
+    },
+    {
+      "id": "spend-to-zero",
+      "name": "Max lifestyle that funds",
+      "entry": "lib/spendToZero.findMaxSpendToZero",
+      "notes": "Binary search on spendingTargetToday; by default re-grids strategy (banded C) per trial spend level"
+    },
+    {
+      "id": "scenario-compare",
+      "name": "A/B scenarios",
+      "entry": "lib/scenarioCompare + worker op compare",
+      "notes": "Side-by-side analyzePlan metrics + dual net-worth series"
+    }
+  ],
+
+  "modules": {
+    "engineCore": [
+      {
+        "path": "src/constants-2026.ts",
+        "exports": [
+          "FEDERAL",
+          "ONTARIO",
+          "LIMITS",
+          "CPP",
+          "OAS",
+          "RRIF_MIN_FACTOR",
+          "rrifMinFactor",
+          "ONTARIO_LIF_MAX_FACTOR",
+          "ontarioLifMaxFactor",
+          "ECON_DEFAULTS",
+          "VALIDATION_ANCHORS",
+          "POLICY_BASELINE",
+          "Sourced",
+          "Indexation",
+          "Bracket"
+        ],
+        "notes": "Every constant has source + retrievedOn + indexation (cpi|frozen|wage). POLICY_BASELINE used in footer/export. Update with docs/ANNUAL-POLICY-REFRESH.md."
+      },
+      {
+        "path": "src/policy.ts",
+        "exports": ["buildYearPolicy", "POLICY_2026", "YearPolicy"],
+        "notes": "CPI-index brackets/limits; frozen bands stay fixed (bracket creep)."
+      },
+      {
+        "path": "src/tax.ts",
+        "exports": [
+          "computeTax",
+          "optimizeHouseholdTax",
+          "bracketTax",
+          "federalBpa",
+          "ontarioHealthPremium",
+          "splittableIncome",
+          "marginalRate",
+          "PersonIncome",
+          "TaxResult",
+          "PensionSplit",
+          "HouseholdTaxResult"
+        ],
+        "notes": "Fed+ON, surtax, OHP, OAS clawback, pension split helpers used from simulate."
+      },
+      {
+        "path": "src/simulate.ts",
+        "exports": [
+          "simulate",
+          "HouseholdInput",
+          "PersonInput",
+          "SimulationResult",
+          "SimPath",
+          "effectiveYearCeiling",
+          "ceilingTodayForAges"
+        ],
+        "notes": "Largest engine module (~1300 lines). Optional modules: survivorship, housing, GIS, payroll, portfolio sleeves, spend phases, one-time goals. Policy cache keyed by CPI."
+      },
+      {
+        "path": "src/mc.ts",
+        "exports": [
+          "runMonteCarlo",
+          "tuneStrategy",
+          "generateTrialPath",
+          "mulberry32",
+          "deriveSeed",
+          "gaussianFactory",
+          "MonteCarloConfig",
+          "MonteCarloResult",
+          "TuneResult",
+          "TunePoint"
+        ],
+        "notes": "Lognormal returns with arithmetic mean µ; σ default 0.11; ρ default 0.85; σ=0 is bit-identical to deterministic. Progress callbacks not structured-cloneable."
+      },
+      {
+        "path": "src/engine-entry.ts",
+        "exports": ["simulate", "runMonteCarlo", "generateTrialPath", "tuneStrategy", "mulberry32", "deriveSeed", "ECON_DEFAULTS", "VALIDATION_ANCHORS", "POLICY_2026", "types"],
+        "notes": "Thin public surface for UI/tests."
+      }
+    ],
+    "analysisAndStrategy": [
+      {
+        "path": "src/lib/analysis.ts",
+        "exports": [
+          "analyzePlan",
+          "prepareForAnalysis",
+          "householdForMonteCarlo",
+          "prepareMonteCarloRun",
+          "PlanAnalysis",
+          "AnalysisOptions",
+          "McStrategyPins"
+        ],
+        "role": "Product analysis entry; stripPhantomDb; person ceilings; L4 share; MC pins"
+      },
+      {
+        "path": "src/lib/tuneBandedC.ts",
+        "exports": ["tuneStrategyBanded", "DEFAULT_C_BAND_AGES", "CeilingBand", "BandedTuneResult"],
+        "role": "Flat C then age bands ≤71/≤80/≤120; OAS soft-cap default on; lex objective funded years → estate"
+      },
+      {
+        "path": "src/lib/tfsaPolicy.ts",
+        "exports": [
+          "TfsaLevel",
+          "allocateDiscretionaryW",
+          "resolveTfsaLevel",
+          "tfsaReserveDollars",
+          "allocateEq",
+          "unregTaxablePerDollar"
+        ],
+        "role": "L1–L4 discretionary allocation; default product level l4"
+      },
+      {
+        "path": "src/lib/tfsaTune.ts",
+        "exports": ["tuneTfsaShare", "TfsaTuneResult", "TfsaTunePoint"],
+        "role": "L4 tfsaFirstShare grid search on deterministic path"
+      },
+      {
+        "path": "src/lib/personPolicy.ts",
+        "exports": [
+          "personOrder",
+          "roomFirstOrder",
+          "assignPersonTopUps",
+          "parkSurplusTfsaFirst",
+          "scaleTopUpsToTfsaRoom",
+          "splitCeilingByRegistered",
+          "TopUpPriority"
+        ],
+        "role": "Person top-up order, person ceiling split, surplus TFSA park, scale top-ups to room"
+      },
+      {
+        "path": "src/lib/estateTax.ts",
+        "exports": ["estateTaxOf"],
+        "role": "grossFinalBalances − afterTaxEstate (simplified death tax)"
+      },
+      {
+        "path": "src/lib/spendToZero.ts",
+        "exports": ["findMaxSpendToZero", "SpendToZeroResult"],
+        "role": "Max funded spend; re-grids strategy per trial by default"
+      },
+      {
+        "path": "src/lib/benefitStartGrid.ts",
+        "role": "CPP 60/65/70 × OAS 65/70 grid for both spouses"
+      },
+      {
+        "path": "src/lib/scenarioCompare.ts",
+        "exports": ["ScenarioSideInput", "ScenarioSideMetrics", "ScenarioCompareResult"],
+        "role": "Side-by-side analyzePlan metrics + dual net-worth series"
+      },
+      {
+        "path": "src/lib/sensitivity.ts",
+        "role": "Tornado ± spend, returns, retirement, C"
+      },
+      {
+        "path": "src/lib/shortfallLevers.ts",
+        "exports": ["needsShortfallHelp", "suggestShortfallLevers", "ShortfallLever"],
+        "role": "UI suggestions when plan fails funding"
+      }
+    ],
+    "uiHelpers": [
+      { "path": "src/lib/cashflow.ts", "role": "yearCashflow, householdNetWorth, personNetWorth" },
+      { "path": "src/lib/drawdown.ts", "role": "Person×account drawdown tables model; buildDrawdownLedger" },
+      { "path": "src/lib/taxExplain.ts", "role": "buildStrategyWhy, buildBracketEstimates" },
+      { "path": "src/lib/format.ts", "role": "money (compact/dense), pct, num" },
+      { "path": "src/lib/validate.ts", "role": "Household validation; throws path blocked before analyze" },
+      { "path": "src/lib/glossary.ts", "role": "In-app term definitions" },
+      { "path": "src/lib/exportPlan.ts", "role": "HTML summary + cashflow CSV" },
+      { "path": "src/lib/runFingerprint.ts", "role": "JSON snapshot of inputs + MC knobs" },
+      { "path": "src/lib/draftStore.ts", "role": "localStorage draft form (schema versioned)" },
+      { "path": "src/lib/scenarioStore.ts", "role": "Named scenarios localStorage" },
+      { "path": "src/lib/lastPlanStore.ts", "role": "Last analyzed plan restore" },
+      { "path": "src/lib/sampleHousehold.ts", "role": "Default Alex/Jordan sample couple" },
+      { "path": "src/lib/engineClient.ts", "role": "Worker client + main-thread fallback; EngineJobCancelled" },
+      { "path": "src/lib/hashRoute.ts", "role": "#/drawdown/withdrawals|balances" },
+      { "path": "src/lib/defaultStartYear.ts", "role": "Next Jan 1 if today after Jan 1" },
+      { "path": "src/lib/spendPlan.ts", "role": "nominalSpendTarget from phases/goals" },
+      { "path": "src/lib/housing.ts", "role": "housingValueNominal, shouldSellHousing, includeHousingInEstate" },
+      { "path": "src/lib/tfsaRoomSeries.ts", "role": "TFSA room chart series" },
+      { "path": "src/lib/mcSummary.ts", "role": "MC result summarizers for UI" },
+      { "path": "src/lib/progress.ts", "role": "ProgressEvent type for long jobs" },
+      { "path": "src/lib/chartAxis.ts", "role": "yearAxisStep / yearAxisLabels" },
+      { "path": "src/lib/chartHover.ts", "role": "Chart hover helpers" },
+      { "path": "src/lib/savings.ts", "role": "SavingsSpec evaluation helpers" }
+    ],
+    "uiComponents": [
+      { "path": "src/App.tsx", "role": "Root UI: tabs, run actions, hero metrics, strategy compare, plan detail (~1700 lines)" },
+      { "path": "src/main.tsx", "role": "React mount" },
+      { "path": "src/styles/global.css", "role": "Dark theme tokens; person A lime, person B magenta" },
+      { "path": "src/components/TaxStrategyExplain.tsx", "role": "Why metrics + future brackets" },
+      { "path": "src/components/Charts.tsx", "role": "FanChart, WithdrawalStackChart" },
+      { "path": "src/components/CashflowTable.tsx", "role": "Year-by-year sources" },
+      { "path": "src/components/DrawdownDetail.tsx", "role": "Preview tables + balance lines" },
+      { "path": "src/components/DrawdownTables.tsx", "role": "WithdrawalsYearTable, BalancesYearTable" },
+      { "path": "src/pages/DrawdownFullPage.tsx", "role": "Full-page sticky tables" },
+      { "path": "src/components/SpendToZeroPanel.tsx", "role": "Max spend UI" },
+      { "path": "src/components/ShortfallPanel.tsx", "role": "Shortfall levers UI" },
+      { "path": "src/components/ScenarioCompare.tsx", "role": "A/B compare panel" },
+      { "path": "src/components/SensitivityPanel.tsx", "role": "Tornado panel" },
+      { "path": "src/components/TfsaRoomPanel.tsx", "role": "TFSA room series" },
+      { "path": "src/components/AdvancedPlanOptions.tsx", "role": "P2 modules UI" },
+      { "path": "src/components/BenefitStartGrid.tsx", "role": "CPP/OAS start grid UI" },
+      { "path": "src/components/ExportPlanBar.tsx", "role": "Print/HTML/CSV" },
+      { "path": "src/components/MetricsGuide.tsx", "role": "Metric explanations" },
+      { "path": "src/components/RunFingerprintPanel.tsx", "role": "Repro fingerprint" },
+      { "path": "src/components/UnitBadge.tsx", "role": "real vs nominal badge" },
+      { "path": "src/components/GlossaryTip.tsx", "role": "Inline glossary" },
+      { "path": "src/components/CollapsibleSection.tsx", "role": "Plan detail sections" },
+      { "path": "src/workers/engineWorker.ts", "role": "Worker ops: analyze, montecarlo, spendToZero, compare, prepareAndMc" }
+    ]
+  },
+
+  "strategySemantics": {
+    "objective": "Lexicographic: maximize funded years, then real after-tax estate (NOT pure tax minimization)",
+    "naive": "topUpCeilingToday = 0 (no deliberate meltdown); same TFSA level/rules unless share is 0",
+    "taxAware": "analyzePlan → banded C + person ceilings + OAS soft-cap + optional L4 share + tfsaAwareMeltdown",
+    "totalTaxSaving": "(naive.livingTax + naive.estateTax) - (tuned.livingTax + tuned.estateTax)",
+    "estateTax": "grossFinalBalances - afterTaxEstate (simplified unsplit final-year income baseline)",
+    "estateRealGain": "primary.afterTaxEstateReal - naive.afterTaxEstateReal",
+    "bandedC": {
+      "defaultAges": [71, 80, 120],
+      "meaning": "untilAge is older-spouse age; first matching band applies",
+      "search": "flat grid via tuneStrategy then coordinate descent around flat C"
+    },
+    "tfsaLevels": {
+      "legacy": "TFSA last",
+      "l1": "Taxable to C then TFSA then overflow",
+      "l2": "L1 with OAS-aware income cap",
+      "l3": "L2 + TFSA reserve years",
+      "l4": "L3 + searched tfsaFirstShare (default product level)"
+    },
+    "personPolicy": {
+      "personCeilingsToday": "Split of flat C by registered balances (25% floor each if both material)",
+      "topUpPriority": "higherReg | equal | prefer0 | prefer1",
+      "tfsaAwareMeltdown": "Scale top-ups so ~65% after-tax proceeds fit TFSA room",
+      "surplusParking": "Fill spouse with more TFSA room first, then unregistered by unreg balance share"
+    },
+    "effectiveCeiling": "Year $ = C×CPI, optionally min with OAS threshold if oasSoftCap; person ceilings override flat when set"
+  },
+
+  "simulateConventions": {
+    "ageDec31": "age in year t = t − birthYear",
+    "rrifMinAge": "age at Jan 1",
+    "lifMaxAge": "age ATTAINED (FSRA PE0196INF keying)",
+    "salaryYears": "ageDec31 < retirementAge",
+    "growth": "B1 = B0·(1+r) + netFlow·(1+r/2)",
+    "unregDistributions": "On OPENING balance; reinvested; raise ACB; taxable whether or not spent",
+    "spendingSolverStarts": "First year either spouse is retired",
+    "solverQuality": {
+      "thorough": "Full split search; deterministic + strategy tuner",
+      "fast": "Seed split from last year; MC trials (~0.15% lifetime-tax noise)"
+    }
+  },
+
+  "monteCarloModel": {
+    "returns": "gross = exp(ln(1+µ) − σ²/2 + σ·z); E[gross]=1+µ; z from shared market factor M + idio",
+    "correlation": "z = √ρ·M + √(1−ρ)·ε; default ρ=0.85",
+    "defaultVol": 0.11,
+    "zeroVol": "emits µ exactly → bit-identical to deterministic simulate",
+    "inflation": "fixed (default) or AR(1) with clamp",
+    "rng": "mulberry32 + deriveSeed(seed, trial)",
+    "defaultTrials": "ECON_DEFAULTS.mcTrials (typically 2000)"
+  },
+
+  "optionalModules": {
+    "survivorship": "First death end of year; RRSP/TFSA/unreg rollover; ~60% CPP boost; survivorSpendFrac",
+    "housing": "valueToday, realGrowth, sellYear, includeInEstate (PR tax-free in estate)",
+    "gis": "Rough GIS when OAS in pay and other income low",
+    "payroll": "Approx employee CPP+EI on salary",
+    "portfolio": "equityWeight blends equity/bond returns into accounts",
+    "spendPhases": "fromAgeYounger + spendToday overrides base lifestyle",
+    "oneTimeGoals": "Extra spendToday in a calendar year",
+    "ceilingBands": "untilAge + ceilingToday; auto-searched on full plan",
+    "oasSoftCap": "min(C×CPI, OAS clawback threshold year $)",
+    "path": "SimPath overrides for MC"
+  },
+
+  "uiMap": {
+    "inputTabs": ["household", "alex", "jordan", "assumptions", "strategy", "scenarios"],
+    "primaryActions": ["Run full plan", "Market stress test", "Cancel"],
+    "results": {
+      "export": "Print/PDF HTML, cashflow CSV",
+      "hero": "Funding, median estate (MC), lifetime tax, shortfall",
+      "strategyCards": "Tax-aware vs naive",
+      "tools": ["Spend-to-zero", "Shortfall levers", "Metrics guide"],
+      "planDetailSections": [
+        "plan-tax",
+        "plan-charts",
+        "plan-cashflow",
+        "plan-tfsa",
+        "plan-drawdown",
+        "plan-sensitivity"
+      ]
+    },
+    "routes": {
+      "#/": "Main planner",
+      "#/drawdown/withdrawals": "Full withdrawals table",
+      "#/drawdown/balances": "Full balances table"
+    },
+    "unitsConvention": {
+      "real": "Today's purchasing power (÷ cpiIndex)",
+      "nominal": "Year-of dollars",
+      "badges": "UnitBadge component on charts/cards"
+    },
+    "persistence": {
+      "draft": "localStorage via draftStore",
+      "scenarios": "localStorage via scenarioStore",
+      "lastPlan": "lastPlanStore for restore"
+    },
+    "personAccents": {
+      "person0": "lime (#c8f542-ish)",
+      "person1": "magenta (#ff4d9a-ish)"
+    }
+  },
+
+  "testing": {
+    "runner": "vitest",
+    "command": "npm test",
+    "locations": ["tests/*.test.ts", "src/lib/*.test.ts"],
+    "engineSuites": [
+      "tests/tax.test.ts — statutory tax anchors",
+      "tests/simulate.test.ts — path/cash/hand checks",
+      "tests/mc.test.ts — seed, zero-vol identity, AR(1), perf",
+      "tests/tfsa-policy.test.ts — L1–L4 allocation",
+      "tests/fuzz.test.ts — conservation invariants",
+      "tests/survivorship.test.ts — first death",
+      "tests/p2-modules.test.ts — housing/payroll/sensitivity"
+    ],
+    "libSuites": [
+      "analysis", "tuneBandedC", "personPolicy", "spendToZero", "drawdown",
+      "draftStore", "scenarioStore", "validate", "exportPlan", "taxExplain",
+      "engine-ui-path", "format", "glossary", "hashRoute", "etc."
+    ],
+    "principle": "Drive real simulate/analyzePlan/runMonteCarlo; avoid re-implementing engine in tests",
+    "smoke": "npm run smoke — Playwright against dev server (scripts/ui-smoke.mjs)"
+  },
+
+  "invariants": [
+    "σ=0 MC trial path is bit-identical to deterministic simulate with same inputs",
+    "Strategy merge: never replace strategy object with a single key (wipes TFSA/bands)",
+    "stripPhantomDb: db.currentAnnualEntitlementToday<=0 must clear entire db object",
+    "Strategy objective is funded years first, then estate — not pure tax min",
+    "Worker payloads must be structured-cloneable (no functions in postMessage)",
+    "Real dollars = nominal / cpiIndex; UI must badge units",
+    "Default TFSA product level is l4 after analyzePlan prepare",
+    "Person ceilings 25% floor when both spouses have material registered balances"
+  ],
+
+  "knownSimplifications": [
+    "Estate tax uses unsplit final-year incomes (slight understatement)",
+    "Pension split is fine grid, near-optimal; MC uses solverQuality fast",
+    "Credits at lowest rate; no inter-spousal unused credit transfer",
+    "CPP/EI payroll optional approx only",
+    "GIS rough sketch",
+    "Wage-indexed limits use CPI in v1",
+    "Bracket UI shows taxableIncomePreSplit",
+    "TFSA-aware meltdown uses ~35% tax haircut estimate when scaling top-ups",
+    "Volatility/correlation defaults are modelling choices",
+    "Not a global multi-decade DP tax optimum"
+  ],
+
+  "conventionsForAgents": [
+    "Prefer pure functions in src/lib for new analysis; keep simulate.ts for year loop only when necessary",
+    "Preserve lexicographic funded-years → estate for strategy search unless product changes",
+    "When changing strategy fields, merge strategy objects — never replace with a single key",
+    "stripPhantomDb: zero DB entitlement clears db object (hidden accrual trap)",
+    "Worker payloads must be structured-cloneable; pass onProgress only on main/worker side, not in payload",
+    "Policy numbers: update constants-2026.ts + docs/ANNUAL-POLICY-REFRESH.md together",
+    "UI dark theme tokens in global.css; person A lime, person B magenta accents",
+    "Default start year: next Jan 1 if today is after Jan 1 (defaultStartYear.ts)",
+    "After engine changes: npm test; consider tests/fuzz and engine-ui-path",
+    "Do not invent CRA rates — source them into Sourced<> constants with retrievedOn",
+    "App.tsx is large; extract new UI to components/ rather than growing App further when possible"
+  ],
+
+  "extensionHints": {
+    "addTaxFeature": "Usually strategy search in lib/* + flags on HouseholdInput.strategy + simulate year loop hooks",
+    "addChart": "components/Charts.tsx or new panel; use chartAxis.ts + chartHover.ts",
+    "addExportField": "lib/exportPlan.ts buildExportHtml / buildCashflowCsv",
+    "addWorkerOp": "workers/engineWorker.ts WorkerOp + engineClient EngineJobResultMap + UI caller",
+    "addOptionalModule": "HouseholdInput field + simulate year hook + AdvancedPlanOptions UI + test in p2-modules or dedicated suite",
+    "policyRefresh": "Follow docs/ANNUAL-POLICY-REFRESH.md checklist; update constants-2026.ts sources"
+  },
+
+  "agentTaskPlaybooks": {
+    "fixBugInFunding": [
+      "Reproduce with sampleHousehold or minimal HouseholdInput",
+      "Run simulate() with solverQuality thorough; inspect YearRow.failed and cash sources",
+      "Compare strategy C=0 vs analyzed C",
+      "Check shortfallLevers / spendToZero if lifestyle is the issue"
+    ],
+    "changeMeltdownLogic": [
+      "Read strategySemantics + personPolicy + tuneBandedC",
+      "Change search or year application; keep merge of strategy",
+      "Update analyzePlan if product defaults change",
+      "Add/extend tuneBandedC.test.ts, analysis.test.ts, tfsa-policy if allocation changes"
+    ],
+    "changeTaxBrackets": [
+      "Edit constants-2026.ts with sources",
+      "Confirm policy.ts scaling still correct",
+      "Update VALIDATION_ANCHORS / tests/tax.test.ts",
+      "Update ANNUAL-POLICY-REFRESH.md notes"
+    ],
+    "addUiPanel": [
+      "New component under src/components",
+      "Wire into App.tsx plan detail or tools section",
+      "Prefer pure lib mapper for data; keep component presentational"
+    ]
+  },
+
+  "fileTreeSummary": {
+    "src/": "App, engine (simulate/tax/mc/policy/constants), lib helpers, components, pages, workers, styles",
+    "tests/": "Engine-focused integration/unit tests",
+    "docs/": "This guide (html+json), ANNUAL-POLICY-REFRESH.md",
+    "scripts/": "ui-smoke.mjs",
+    "root": "package.json, vite.config.ts, README.md, retirement-planner-design.md, index.html"
+  }
+}

@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Horizon — Codebase Guide</title>
+  <style>
+    :root {
+      --bg: #0b0d14;
+      --panel: #141824;
+      --line: rgba(255,255,255,.1);
+      --text: #e8eaf6;
+      --muted: rgba(232,234,246,.65);
+      --lime: #c8f542;
+      --cyan: #3de7ff;
+      --mag: #ff4d9a;
+      --code: #1a1e2e;
+      --font: "Segoe UI", system-ui, sans-serif;
+      --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    header {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .eyebrow {
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin: 0 0 0.5rem;
+    }
+    h1 { font-size: 2rem; font-weight: 600; margin: 0 0 0.5rem; letter-spacing: -0.02em; }
+    h1 em { font-style: normal; color: var(--lime); }
+    .lead { color: var(--muted); margin: 0; max-width: 42rem; }
+    nav.toc {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+    nav.toc h2 { margin: 0 0 0.6rem; font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    nav.toc ol { margin: 0; padding-left: 1.2rem; columns: 1; }
+    @media (min-width: 640px) { nav.toc ol { columns: 2; } }
+    nav.toc li { break-inside: avoid; margin-bottom: 0.25rem; }
+    nav.toc a { color: var(--cyan); text-decoration: none; }
+    nav.toc a:hover { text-decoration: underline; }
+    h2 {
+      font-size: 1.45rem;
+      margin: 2.5rem 0 0.75rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--line);
+      color: var(--lime);
+    }
+    h3 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; color: var(--cyan); }
+    h4 { font-size: 0.95rem; margin: 1.1rem 0 0.4rem; color: var(--text); }
+    p, li { color: var(--text); }
+    .muted { color: var(--muted); }
+    code, .path {
+      font-family: var(--mono);
+      font-size: 0.86em;
+      background: var(--code);
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+    }
+    pre {
+      background: var(--code);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      line-height: 1.45;
+      color: var(--text);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.75rem 0 1.25rem;
+      font-size: 0.9rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.5rem 0.6rem;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1rem 1.15rem;
+      margin: 1rem 0;
+    }
+    .tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      margin-right: 0.35rem;
+      margin-bottom: 0.25rem;
+    }
+    .tag.lime { color: var(--lime); border-color: rgba(200,245,66,.35); }
+    .tag.cyan { color: var(--cyan); border-color: rgba(61,231,255,.35); }
+    .tag.mag { color: var(--mag); border-color: rgba(255,77,154,.35); }
+    ul.tight li { margin-bottom: 0.35rem; }
+    .flow {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      white-space: pre-wrap;
+    }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    a { color: var(--cyan); }
+    .callout {
+      border-left: 3px solid var(--lime);
+      padding: 0.65rem 0 0.65rem 1rem;
+      margin: 1rem 0;
+      background: rgba(200,245,66,.05);
+      border-radius: 0 8px 8px 0;
+    }
+    .callout.warn {
+      border-left-color: var(--mag);
+      background: rgba(255,77,154,.06);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <p class="eyebrow">Horizon · codebase guide v2</p>
+      <h1><em>Horizon</em> — how this code works</h1>
+      <p class="lead">
+        Human-readable map of the Ontario couple retirement planner: architecture, engine,
+        tax strategy, year loop, Monte Carlo, UI, tests, and conventions for maintainers.
+        Machine-readable companion for agents:
+        <a href="codebase-guide.json"><code>codebase-guide.json</code></a>.
+      </p>
+      <p class="muted" style="margin-top:0.75rem;font-size:0.9rem;">
+        Package <code>ontario-couple-retirement-planner</code> · React 19 + Vite 6 + TypeScript ·
+        Client-only · Policy baseline 2026 · Doc date 2026-07-22 · Guide version 2.0.0
+      </p>
+    </header>
+
+    <nav class="toc">
+      <h2>Contents</h2>
+      <ol>
+        <li><a href="#what">What the app is</a></li>
+        <li><a href="#arch">Architecture</a></li>
+        <li><a href="#run">How to run</a></li>
+        <li><a href="#engine">Engine core</a></li>
+        <li><a href="#strategy">Tax strategy pipeline</a></li>
+        <li><a href="#simulate">Year loop (simulate)</a></li>
+        <li><a href="#mc">Monte Carlo</a></li>
+        <li><a href="#types">Key types &amp; strategy fields</a></li>
+        <li><a href="#ui">UI map</a></li>
+        <li><a href="#modules">Module catalog</a></li>
+        <li><a href="#modules-optional">Optional plan modules</a></li>
+        <li><a href="#tests">Testing</a></li>
+        <li><a href="#simplifications">Known simplifications</a></li>
+        <li><a href="#agents">Notes for future agents</a></li>
+        <li><a href="#glossary">Quick glossary</a></li>
+      </ol>
+    </nav>
+
+    <section id="what">
+      <h2>1. What the app is</h2>
+      <p>
+        <strong>Horizon</strong> is a full-lifecycle retirement simulator for a
+        <strong>two-person Ontario household</strong>. It models accumulation and decumulation
+        with federal + Ontario tax, registered accounts (RRSP/RRIF, LIRA/LIF, DC), TFSA,
+        unregistered accounts, CPP, OAS, optional DB, and a tax-aware “meltdown” strategy
+        compared to a naive no-top-up baseline. Market risk is explored via seeded Monte Carlo.
+      </p>
+      <div class="card">
+        <h4>Primary questions it answers</h4>
+        <ul class="tight">
+          <li>Can this lifestyle be funded through the plan horizon on the expected path?</li>
+          <li>Where does the money come from each year (which person, which account)?</li>
+          <li>What top-up / TFSA policy improves total tax and real estate vs never melting down?</li>
+          <li>Under random markets, what fraction of paths never miss spending?</li>
+        </ul>
+      </div>
+      <div class="callout">
+        <strong>Not goals:</strong> global multi-decade dynamic-programming tax optimum,
+        multi-user backend, full CRA form fidelity, live ticker portfolios, or non-Ontario provinces.
+      </div>
+      <p class="muted">
+        Outputs are <strong>planning estimates</strong>, not advice. Policy numbers are pinned for
+        tax year <strong>2026</strong> with sources in <code>constants-2026.ts</code>.
+      </p>
+    </section>
+
+    <section id="arch">
+      <h2>2. Architecture</h2>
+      <p>
+        Layered design: pure TypeScript engine + React shell. Long jobs can run in a Web Worker
+        with progress and cancel. All data stays on-device (localStorage); there is no server.
+      </p>
+      <pre class="flow">┌─────────────────────────────────────────────────────────┐
+│  React UI  (App.tsx, components/, pages/, global.css)   │
+│  drafts · scenarios · export · charts · tables          │
+└───────────────────────────┬─────────────────────────────┘
+                            │ engineClient (progress/cancel)
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│  Worker (optional)  engineWorker.ts                     │
+│  analyze · MC · spend-to-zero · scenario compare        │
+└───────────────────────────┬─────────────────────────────┘
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│  analysis / tuneBandedC / tfsaTune / personPolicy       │
+└───────────────────────────┬─────────────────────────────┘
+                            ▼
+┌──────────────┬──────────────┬───────────────────────────┐
+│  simulate.ts │    mc.ts     │  tax.ts + policy.ts       │
+│  lifetime    │  paths+C     │  + constants-2026.ts      │
+└──────────────┴──────────────┴───────────────────────────┘</pre>
+      <table>
+        <thead>
+          <tr><th>Layer</th><th>Key files</th><th>Role</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Policy</td>
+            <td><code>constants-2026.ts</code>, <code>policy.ts</code></td>
+            <td>Sourced 2026 constants; CPI-scale to <code>YearPolicy</code></td>
+          </tr>
+          <tr>
+            <td>Tax</td>
+            <td><code>tax.ts</code></td>
+            <td>Federal + Ontario, OAS clawback, pension split</td>
+          </tr>
+          <tr>
+            <td>Simulate</td>
+            <td><code>simulate.ts</code> (~1300 lines)</td>
+            <td>Year-by-year path, spending solver, top-ups, surplus</td>
+          </tr>
+          <tr>
+            <td>MC / flat C</td>
+            <td><code>mc.ts</code></td>
+            <td>Seeded returns; 1-D ceiling grid <code>tuneStrategy</code></td>
+          </tr>
+          <tr>
+            <td>Product analysis</td>
+            <td><code>lib/analysis.ts</code>, <code>tuneBandedC.ts</code>, <code>personPolicy.ts</code></td>
+            <td>Banded C, person ceilings, L4 share, MC pins</td>
+          </tr>
+          <tr>
+            <td>Worker</td>
+            <td><code>engineWorker.ts</code>, <code>engineClient.ts</code></td>
+            <td>Off-thread jobs + main-thread fallback</td>
+          </tr>
+          <tr>
+            <td>UI</td>
+            <td><code>App.tsx</code> (~1700 lines), <code>components/*</code></td>
+            <td>Inputs, results, deep dives</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Public engine re-exports live in <code>src/engine-entry.ts</code>.
+        App entry is <code>src/main.tsx</code> → <code>App.tsx</code>.
+      </p>
+      <h3>Dependency sketch</h3>
+      <pre class="flow">App → engineClient → worker | analysis
+analysis → tuneBandedC → mc.tuneStrategy + simulate
+analysis → personPolicy, tfsaTune, estateTax, validate
+simulate → tax, policy, tfsaPolicy, spendPlan, housing, personPolicy
+mc → simulate, constants-2026
+tax → policy / constants brackets</pre>
+    </section>
+
+    <section id="run">
+      <h2>3. How to run</h2>
+      <pre>npm install
+npm run dev          # Vite (default :5173)
+npm test             # Vitest once
+npm run test:watch
+npm run build
+npm run preview
+npm run smoke        # Playwright smoke against dev server</pre>
+      <p>
+        On first open, the sample couple (Alex / Jordan) is typically analyzed automatically.
+        Use <strong>Run full plan</strong> after edits; <strong>Market stress test</strong> runs Monte Carlo.
+      </p>
+      <p class="muted">
+        Simulation years are full calendar years from January 1. Default start year is the
+        <strong>next</strong> Jan 1 if you open the app after January 1
+        (<code>lib/defaultStartYear.ts</code>).
+      </p>
+    </section>
+
+    <section id="engine">
+      <h2>4. Engine core</h2>
+
+      <h3>4.1 Policy constants</h3>
+      <p>
+        <code>constants-2026.ts</code> pins every statutory number with
+        <span class="tag cyan">source</span>
+        <span class="tag cyan">retrievedOn</span>
+        <span class="tag cyan">indexation</span>
+        (<code>cpi | frozen | wage</code>. <code>buildYearPolicy(cpiIndex)</code> produces
+        year-scaled brackets and limits. Footer / export expose
+        <code>POLICY_BASELINE</code> (tax year 2026).
+      </p>
+      <p>
+        Major groups: <code>FEDERAL</code>, <code>ONTARIO</code>, <code>LIMITS</code> (TFSA/RRSP),
+        <code>CPP</code>, <code>OAS</code>, RRIF minimum factors, Ontario LIF max factors,
+        <code>ECON_DEFAULTS</code> (MC trials, vol, correlation), <code>VALIDATION_ANCHORS</code>.
+      </p>
+      <p class="muted">
+        Annual refresh checklist: <code>docs/ANNUAL-POLICY-REFRESH.md</code>.
+      </p>
+
+      <h3>4.2 Tax</h3>
+      <p>
+        <code>computeTax(personIncome, splitIn, policy)</code> computes federal + Ontario tax,
+        surtax, Ontario health premium (OHP), OAS recovery, and non-refundable credits at the
+        lowest rate. <code>optimizeHouseholdTax</code> / split helpers search pension-income split
+        used inside the year loop.
+      </p>
+
+      <h3>4.3 Simulation conventions</h3>
+      <ul class="tight">
+        <li><strong>Age in year t:</strong> <code>t − birthYear</code> (age attained Dec 31).</li>
+        <li><strong>RRIF minimums:</strong> age at Jan 1.</li>
+        <li><strong>Ontario LIF maximum:</strong> age attained (FSRA PE0196INF keying).</li>
+        <li><strong>Salary:</strong> earned while <code>ageDec31 &lt; retirementAge</code>.</li>
+        <li><strong>Growth:</strong> mid-year convention
+          <code>B1 = B0·(1+r) + netFlow·(1+r/2)</code>.</li>
+        <li><strong>Unregistered distributions:</strong> on opening balance; reinvested; raise ACB;
+          taxable whether or not spent.</li>
+        <li><strong>Spending solver:</strong> starts the first year either spouse is retired.</li>
+        <li><strong>solverQuality:</strong>
+          <code>thorough</code> (deterministic + tuner) vs
+          <code>fast</code> (Monte Carlo, small tax noise).</li>
+      </ul>
+    </section>
+
+    <section id="strategy">
+      <h2>5. Tax strategy pipeline</h2>
+      <p>
+        “Run full plan” does <strong>not</strong> claim a global tax optimum. It runs a
+        <strong>lexicographic search</strong>: maximize <em>funded years</em>, then
+        <em>real after-tax estate</em>. Tax savings are a derived metric, not the sole objective.
+      </p>
+      <pre class="flow">analyzePlan(household)
+  ├─ validateHousehold
+  ├─ prepareForAnalysis (clone, stripPhantomDb, thorough)
+  ├─ resolve TFSA level → default l4, reserve years → 2
+  ├─ tuneStrategyBanded
+  │    ├─ flat C grid (0 … max, coarse then fine)  [mc.tuneStrategy]
+  │    ├─ age bands ≤71 / ≤80 / ≤120 (coordinate descent)
+  │    └─ OAS soft-cap on (min C×CPI, OAS threshold)
+  ├─ personCeilings = split flat C by registered balances
+  ├─ topUpPriority = higherReg; tfsaAwareMeltdown = true
+  ├─ re-simulate with person policy
+  ├─ L4: tuneTfsaShare (TFSA-first share grid)
+  └─ metrics vs naive C=0</pre>
+
+      <h3>Naive vs tax-aware</h3>
+      <ul class="tight">
+        <li><strong>Naive:</strong> no deliberate meltdown (<code>C = 0</code>).</li>
+        <li><strong>Tax-aware:</strong> banded/person C, TFSA policy L1–L4, surplus → TFSA room-first.</li>
+        <li><strong>Tax saved:</strong> Δ(living tax + estate tax), not living tax alone.</li>
+        <li><strong>Estate tax:</strong> <code>gross balances − afterTaxEstate</code> (simplified death calc via <code>estateTaxOf</code>).</li>
+        <li><strong>Estate gain (real):</strong> primary real estate − naive real estate.</li>
+      </ul>
+
+      <h3>TFSA levels</h3>
+      <table>
+        <thead><tr><th>Level</th><th>Behaviour</th></tr></thead>
+        <tbody>
+          <tr><td><code>legacy</code></td><td>TFSA last (classic order)</td></tr>
+          <tr><td><code>l1</code></td><td>Taxable sources up to C, then TFSA, then overflow</td></tr>
+          <tr><td><code>l2</code></td><td>L1 + OAS-aware income cap</td></tr>
+          <tr><td><code>l3</code></td><td>L2 + TFSA spending reserve (N × spend)</td></tr>
+          <tr><td><code>l4</code> <span class="tag lime">default</span></td><td>L3 + searched TFSA-first share of discretionary W</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Person-level policy</h3>
+      <ul class="tight">
+        <li><code>personCeilingsToday</code> — split of flat C by RRSP/LIRA/DC weights (25% floor each when both material)</li>
+        <li><code>topUpPriority</code> — who fills under their ceiling first (<code>higherReg</code> default)</li>
+        <li><code>tfsaAwareMeltdown</code> — scale top-ups so ~65% after-tax proceeds fit remaining TFSA room</li>
+        <li>Surplus parking — spouse with more TFSA room first; residual unreg by unreg balance share</li>
+      </ul>
+
+      <div class="callout warn">
+        <strong>Agent trap:</strong> always <em>merge</em> the <code>strategy</code> object.
+        Replacing it with a single key (e.g. only <code>topUpCeilingToday</code>) wipes TFSA level, bands, and person ceilings.
+      </div>
+    </section>
+
+    <section id="simulate">
+      <h2>6. Year loop (<code>simulate.ts</code>)</h2>
+      <p>Each calendar year roughly:</p>
+      <ol>
+        <li>Advance CPI; build <code>YearPolicy</code> (cached by CPI)</li>
+        <li>RRIF/LIF conversions; TFSA/RRSP room accrual</li>
+        <li>Income streams (salary, CPP, OAS, DB), forced mins, unregistered distributions</li>
+        <li>Optional payroll (CPP/EI) and rough GIS</li>
+        <li>Spending target: phases + one-time goals × survivor step-down × CPI</li>
+        <li>Optional home sale → unregistered</li>
+        <li>Solve discretionary withdrawals for lifestyle (bisection + pension split)</li>
+        <li><code>allocateDiscretionaryW</code> per TFSA level</li>
+        <li>Person-aware RRSP top-ups under C / bands / person ceilings; TFSA-aware scale</li>
+        <li>Park surplus: TFSA room-first, then unregistered</li>
+        <li>Mid-year growth convention on accounts</li>
+        <li>Optional first death at year-end (rollover, CPP boost)</li>
+      </ol>
+      <p class="muted">
+        Optional <code>SimPath</code> injects per-year inflation and account returns (Monte Carlo).
+        Zero-volatility paths are bit-identical to the deterministic path.
+      </p>
+    </section>
+
+    <section id="mc">
+      <h2>7. Monte Carlo</h2>
+      <ul class="tight">
+        <li><strong>Returns:</strong> lognormal with user’s µ as <strong>arithmetic</strong> mean;
+          <code>gross = exp(ln(1+µ) − σ²/2 + σ·z)</code>; default σ ≈ 11%</li>
+        <li><strong>Correlation:</strong> shared market factor → pairwise ρ ≈ 0.85 across accounts/spouses</li>
+        <li><strong>Inflation:</strong> fixed or AR(1) (UI toggle under Assumptions)</li>
+        <li><strong>RNG:</strong> mulberry32 + <code>deriveSeed(seed, trial)</code></li>
+        <li><strong>Strategy pins:</strong> C, bands, OAS soft-cap, L4 share from analysis
+          (<code>prepareMonteCarloRun</code> / <code>householdForMonteCarlo</code>)</li>
+        <li><strong>solverQuality:</strong> <code>fast</code></li>
+        <li><strong>Success:</strong> share of trials with no spending shortfall year</li>
+        <li><strong>UI estate:</strong> median (p50), worse (p10), better (p90) real after-tax estate</li>
+      </ul>
+      <p class="muted">
+        Median under volatility is usually below the smooth expected-return path (volatility drag + sequence risk).
+        That is expected, not a bug.
+      </p>
+    </section>
+
+    <section id="types">
+      <h2>8. Key types &amp; strategy fields</h2>
+      <table>
+        <thead>
+          <tr><th>Type</th><th>Meaning</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>HouseholdInput</code></td>
+            <td>Root plan: spend, inflation, strategy, two persons, optional modules</td>
+          </tr>
+          <tr>
+            <td><code>PersonInput</code></td>
+            <td>Birth/retirement, salary, savings, rooms, balances, CPP/OAS/DB, returns</td>
+          </tr>
+          <tr>
+            <td><code>SimulationResult</code></td>
+            <td>All <code>YearRow</code>s, lifetime tax, after-tax estate (nominal + real), death/housing extras</td>
+          </tr>
+          <tr>
+            <td><code>PlanAnalysis</code></td>
+            <td>primary, naive, C, bands, person ceilings, TFSA share, tax save, funded</td>
+          </tr>
+          <tr>
+            <td><code>MonteCarloResult</code></td>
+            <td>Success rate, estate percentiles, net-worth fan series, failures</td>
+          </tr>
+          <tr>
+            <td><code>YearPolicy</code></td>
+            <td>CPI-scaled brackets, credits, OAS threshold, contribution limits</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3><code>HouseholdInput.strategy</code> fields</h3>
+      <table>
+        <thead><tr><th>Field</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><code>topUpCeilingToday</code></td><td>Flat meltdown C (today’s $)</td></tr>
+          <tr><td><code>ceilingBands</code></td><td>Age-banded C by older spouse age</td></tr>
+          <tr><td><code>oasSoftCap</code></td><td>Cap effective C at OAS clawback threshold</td></tr>
+          <tr><td><code>tfsaLevel</code></td><td><code>legacy | l1 | l2 | l3 | l4</code></td></tr>
+          <tr><td><code>tfsaReserveYears</code></td><td>L3/L4 reserve (default 2)</td></tr>
+          <tr><td><code>tfsaFirstShare</code></td><td>L4 share of W from TFSA first</td></tr>
+          <tr><td><code>personCeilingsToday</code></td><td><code>[C0, C1]</code> per spouse</td></tr>
+          <tr><td><code>topUpPriority</code></td><td><code>higherReg | equal | prefer0 | prefer1</code></td></tr>
+          <tr><td><code>tfsaAwareMeltdown</code></td><td>Scale top-ups to TFSA room</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="ui">
+      <h2>9. UI map</h2>
+      <h3>Input tabs</h3>
+      <p>
+        <span class="tag">household</span>
+        <span class="tag lime">alex</span>
+        <span class="tag mag">jordan</span>
+        <span class="tag">assumptions</span>
+        <span class="tag">strategy</span>
+        <span class="tag">scenarios</span>
+      </p>
+      <ul class="tight">
+        <li><strong>Household</strong> — spend, inflation, horizon, start year, first death, advanced P2 modules</li>
+        <li><strong>Spouse tabs</strong> — balances, rooms, savings, CPP/OAS/DB, returns</li>
+        <li><strong>Assumptions</strong> — MC trials, seed, vol, inflation path kind</li>
+        <li><strong>Strategy</strong> — C, OAS soft-cap, TFSA-aware meltdown, priority, TFSA level, CPP/OAS grid</li>
+        <li><strong>Scenarios</strong> — save/load, compare A/B, run fingerprint, comfortable tables</li>
+      </ul>
+      <h3>Primary actions</h3>
+      <ul class="tight">
+        <li><strong>Run full plan</strong> → <code>analyzePlan</code> (worker)</li>
+        <li><strong>Market stress test</strong> → prepare pins + <code>runMonteCarlo</code></li>
+        <li><strong>Cancel</strong> → AbortSignal terminates worker</li>
+      </ul>
+      <h3>Results</h3>
+      <ul class="tight">
+        <li>Export bar (print/HTML/CSV)</li>
+        <li>Metrics guide + shortfall levers</li>
+        <li>Hero metrics + strategy compare cards</li>
+        <li>Spend-to-zero search</li>
+        <li>Plan detail collapsibles: tax, charts, cashflow, TFSA room, drawdown, sensitivity</li>
+      </ul>
+      <h3>Routes</h3>
+      <table>
+        <tr><td><code>#/</code></td><td>Main planner</td></tr>
+        <tr><td><code>#/drawdown/withdrawals</code></td><td>Full withdrawals table</td></tr>
+        <tr><td><code>#/drawdown/balances</code></td><td>Full balances table</td></tr>
+      </table>
+      <h3>Units &amp; persistence</h3>
+      <p>
+        <span class="tag lime">today’s $</span> = real (÷ CPI) ·
+        <span class="tag mag">nominal year-$</span> = year-of dollars.
+        Badge: <code>UnitBadge</code>.
+      </p>
+      <p class="muted">
+        Drafts, named scenarios, and last plan live in <code>localStorage</code>
+        (<code>draftStore</code> / <code>scenarioStore</code> / <code>lastPlanStore</code>.
+      </p>
+    </section>
+
+    <section id="modules">
+      <h2>10. Module catalog</h2>
+      <h3>Engine</h3>
+      <table>
+        <thead><tr><th>Path</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><code>src/constants-2026.ts</code></td><td>Sourced statutory constants</td></tr>
+          <tr><td><code>src/policy.ts</code></td><td>CPI-scaled YearPolicy</td></tr>
+          <tr><td><code>src/tax.ts</code></td><td>Fed + ON tax, OAS, pension split</td></tr>
+          <tr><td><code>src/simulate.ts</code></td><td>Lifetime path + spending solver</td></tr>
+          <tr><td><code>src/mc.ts</code></td><td>Monte Carlo + flat C tuner</td></tr>
+          <tr><td><code>src/engine-entry.ts</code></td><td>Public re-exports</td></tr>
+        </tbody>
+      </table>
+      <h3>Analysis &amp; strategy</h3>
+      <table>
+        <thead><tr><th>Path</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><code>src/lib/analysis.ts</code></td><td>Product <code>analyzePlan</code>, MC prep/pins</td></tr>
+          <tr><td><code>src/lib/tuneBandedC.ts</code></td><td>Flat + age-banded C search</td></tr>
+          <tr><td><code>src/lib/personPolicy.ts</code></td><td>Person top-ups, TFSA park, scale to room</td></tr>
+          <tr><td><code>src/lib/tfsaPolicy.ts</code></td><td>L1–L4 allocation rules</td></tr>
+          <tr><td><code>src/lib/tfsaTune.ts</code></td><td>L4 share grid</td></tr>
+          <tr><td><code>src/lib/estateTax.ts</code></td><td>Simplified estate tax metric</td></tr>
+          <tr><td><code>src/lib/spendToZero.ts</code></td><td>Max funded lifestyle</td></tr>
+          <tr><td><code>src/lib/benefitStartGrid.ts</code></td><td>CPP×OAS start ages</td></tr>
+          <tr><td><code>src/lib/scenarioCompare.ts</code></td><td>A/B plan compare</td></tr>
+          <tr><td><code>src/lib/sensitivity.ts</code></td><td>Tornado sensitivity</td></tr>
+          <tr><td><code>src/lib/shortfallLevers.ts</code></td><td>UI shortfall suggestions</td></tr>
+        </tbody>
+      </table>
+      <h3>UI helpers &amp; components</h3>
+      <table>
+        <thead><tr><th>Path</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><code>src/lib/cashflow.ts</code></td><td>Year sources / net worth</td></tr>
+          <tr><td><code>src/lib/drawdown.ts</code></td><td>Person×account drawdown ledger</td></tr>
+          <tr><td><code>src/lib/taxExplain.ts</code></td><td>Strategy “why” + brackets</td></tr>
+          <tr><td><code>src/lib/exportPlan.ts</code></td><td>HTML/CSV export</td></tr>
+          <tr><td><code>src/lib/engineClient.ts</code></td><td>Worker client + fallback</td></tr>
+          <tr><td><code>src/lib/validate.ts</code></td><td>Household validation</td></tr>
+          <tr><td><code>src/lib/sampleHousehold.ts</code></td><td>Default Alex / Jordan</td></tr>
+          <tr><td><code>src/components/Charts.tsx</code></td><td>Fan + withdrawal stack</td></tr>
+          <tr><td><code>src/components/TaxStrategyExplain.tsx</code></td><td>Why metrics</td></tr>
+          <tr><td><code>src/pages/DrawdownFullPage.tsx</code></td><td>Full-page sticky tables</td></tr>
+          <tr><td><code>src/workers/engineWorker.ts</code></td><td>Worker ops</td></tr>
+        </tbody>
+      </table>
+      <p class="muted">
+        Full export lists and agent playbooks live in
+        <a href="codebase-guide.json"><code>codebase-guide.json</code></a>.
+      </p>
+    </section>
+
+    <section id="modules-optional">
+      <h2>11. Optional plan modules</h2>
+      <table>
+        <thead><tr><th>Flag / field</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td><code>survivorship</code></td><td>First death, rollover, spend step-down, CPP boost</td></tr>
+          <tr><td><code>housing</code></td><td>Home value, growth, sale, estate (PR tax-free)</td></tr>
+          <tr><td><code>gis</code></td><td>Rough GIS when OAS + low income</td></tr>
+          <tr><td><code>payroll</code></td><td>Approx employee CPP/EI on salary</td></tr>
+          <tr><td><code>portfolio</code></td><td>Equity weight blends account returns</td></tr>
+          <tr><td><code>spendPhases</code> / <code>oneTimeGoals</code></td><td>Age phases + one-time cash needs</td></tr>
+          <tr><td><code>strategy.ceilingBands</code></td><td>Age-banded meltdown C</td></tr>
+          <tr><td><code>strategy.oasSoftCap</code></td><td>Cap C at OAS threshold</td></tr>
+          <tr><td><code>strategy.personCeilingsToday</code></td><td>Per-spouse C</td></tr>
+          <tr><td><code>strategy.tfsaAwareMeltdown</code></td><td>Scale top-ups to TFSA room</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="tests">
+      <h2>12. Testing</h2>
+      <p>
+        <strong>Vitest</strong> runs <code>tests/**/*.test.ts</code> and <code>src/lib/*.test.ts</code>
+        (~2.6k lines of tests). Prefer driving real
+        <code>simulate</code> / <code>analyzePlan</code> / <code>runMonteCarlo</code>
+        rather than re-implementing logic in the test.
+      </p>
+      <h3>Engine suites</h3>
+      <ul class="tight">
+        <li><code>tests/tax.test.ts</code> — statutory anchors</li>
+        <li><code>tests/simulate.test.ts</code> — cash path / hand checks</li>
+        <li><code>tests/mc.test.ts</code> — seeds, zero-vol identity, AR(1), performance</li>
+        <li><code>tests/tfsa-policy.test.ts</code> — L1–L4</li>
+        <li><code>tests/fuzz.test.ts</code> — conservation / no phantom money</li>
+        <li><code>tests/survivorship.test.ts</code>, <code>tests/p2-modules.test.ts</code></li>
+      </ul>
+      <h3>Lib suites (selected)</h3>
+      <p class="muted">
+        analysis, tuneBandedC, personPolicy, spendToZero, drawdown, draftStore, scenarioStore,
+        validate, exportPlan, taxExplain, engine-ui-path, format, glossary, hashRoute, …
+      </p>
+      <p>UI smoke: <code>npm run smoke</code> (Playwright via <code>scripts/ui-smoke.mjs</code>).</p>
+    </section>
+
+    <section id="simplifications">
+      <h2>13. Known simplifications</h2>
+      <ul class="tight">
+        <li>Estate tax uses unsplit final-year incomes (slight understatement)</li>
+        <li>Pension split is a fine grid, not closed-form global optimum; MC uses faster solver</li>
+        <li>Credits at lowest rate; no unused credit transfer between spouses</li>
+        <li>Payroll and GIS are optional rough approximations</li>
+        <li>Wage-indexed limits use CPI in v1</li>
+        <li>Bracket tables show <code>taxableIncomePreSplit</code></li>
+        <li>TFSA-aware meltdown uses a fixed after-tax fraction (~65%) when scaling top-ups</li>
+        <li>Default volatility / correlation are modelling choices, not CRA data</li>
+        <li>Not a global multi-decade DP tax optimum</li>
+      </ul>
+      <p class="muted">See also design doc and README “Known approximations”.</p>
+    </section>
+
+    <section id="agents">
+      <h2>14. Notes for future agents</h2>
+      <div class="card">
+        <ul class="tight">
+          <li>Parse <a href="codebase-guide.json"><code>docs/codebase-guide.json</code></a> as the structured source of truth; this HTML is the human narrative.</li>
+          <li>Prefer pure helpers under <code>src/lib/</code>; only extend the year loop in <code>simulate.ts</code> when state must live there.</li>
+          <li>Strategy search objective stays funded-years → estate unless product explicitly changes.</li>
+          <li>Always <strong>merge</strong> <code>strategy</code> objects — never replace with a single key.</li>
+          <li><code>stripPhantomDb</code>: zero DB entitlement must clear the whole <code>db</code> object (hidden accrual bug class).</li>
+          <li>Worker payloads must be structured-cloneable; do not put functions in postMessage payloads.</li>
+          <li>Policy updates: change <code>constants-2026.ts</code> and <code>docs/ANNUAL-POLICY-REFRESH.md</code> together.</li>
+          <li>Person A accent = lime; person B = magenta (drawdown / charts).</li>
+          <li>After engine changes: <code>npm test</code>; consider fuzz + engine-ui-path.</li>
+          <li>Do not invent CRA rates — pin them as <code>Sourced&lt;&gt;</code> with <code>retrievedOn</code>.</li>
+        </ul>
+      </div>
+      <h3>Where to extend</h3>
+      <table>
+        <tr><td>New tax search</td><td><code>lib/*</code> + flags on <code>strategy</code> + hooks in year loop</td></tr>
+        <tr><td>New chart</td><td><code>components/</code> + <code>chartAxis</code> / <code>chartHover</code></td></tr>
+        <tr><td>Export field</td><td><code>lib/exportPlan.ts</code></td></tr>
+        <tr><td>Worker job</td><td><code>engineWorker.ts</code> + <code>engineClient.ts</code></td></tr>
+        <tr><td>Optional module</td><td>input field + simulate hook + AdvancedPlanOptions + test</td></tr>
+      </table>
+      <h3>Playbooks (short)</h3>
+      <ul class="tight">
+        <li><strong>Funding bug:</strong> minimal household → <code>simulate</code> → inspect failed years → compare C=0 vs tuned.</li>
+        <li><strong>Meltdown change:</strong> read personPolicy + tuneBandedC + analysis; merge strategy; extend tests.</li>
+        <li><strong>Bracket change:</strong> constants-2026 + tax tests + policy refresh doc.</li>
+      </ul>
+    </section>
+
+    <section id="glossary">
+      <h2>15. Quick glossary</h2>
+      <table>
+        <thead><tr><th>Term</th><th>Meaning in this codebase</th></tr></thead>
+        <tbody>
+          <tr><td><strong>C / ceiling</strong></td><td>Top-up / meltdown taxable-income target in today’s $</td></tr>
+          <tr><td><strong>Meltdown</strong></td><td>Deliberate RRSP withdrawals (above spending need) to top up income under C</td></tr>
+          <tr><td><strong>Funded years</strong></td><td>Count of years that fully met lifestyle spending</td></tr>
+          <tr><td><strong>Real estate</strong></td><td>Terminal after-tax wealth in today’s purchasing power</td></tr>
+          <tr><td><strong>Naive</strong></td><td>Baseline with C=0 (no deliberate meltdown)</td></tr>
+          <tr><td><strong>L4</strong></td><td>Default TFSA policy with searched TFSA-first share</td></tr>
+          <tr><td><strong>OAS soft-cap</strong></td><td>Don’t deliberately push income into OAS recovery via C</td></tr>
+          <tr><td><strong>Thorough / fast</strong></td><td>Pension-split solver quality modes</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      <p>
+        Horizon · Ontario couple retirement planner · estimates only · federal + Ontario tax ·
+        RRIF / LIF / OAS · companion JSON: <code>docs/codebase-guide.json</code>
+      </p>
+      <p>
+        Also see <code>README.md</code>, <code>retirement-planner-design.md</code>,
+        <code>docs/ANNUAL-POLICY-REFRESH.md</code>.
+      </p>
+    </footer>
+  </div>
+</body>
+</html>
