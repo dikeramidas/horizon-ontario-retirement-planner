@@ -37,6 +37,7 @@ import { TaxStrategyExplain } from "./components/TaxStrategyExplain";
 import { MetricsGuide } from "./components/MetricsGuide";
 import { ShortfallPanel } from "./components/ShortfallPanel";
 import { SpendToZeroPanel } from "./components/SpendToZeroPanel";
+import { LongevityPanel } from "./components/LongevityPanel";
 import { ScenarioComparePanel } from "./components/ScenarioCompare";
 import { BenefitStartGridPanel } from "./components/BenefitStartGrid";
 import { ExportPlanBar } from "./components/ExportPlanBar";
@@ -1621,6 +1622,16 @@ export function App() {
                     onApplySpend={(spend) => {
                       markDirty();
                       const next = { ...inputRef.current, spendingTargetToday: spend };
+                      setInput(next);
+                      inputRef.current = next;
+                    }}
+                  />
+                  <LongevityPanel
+                    input={input}
+                    personNames={personNames}
+                    onApplySurvivorship={(survivorship) => {
+                      markDirty();
+                      const next = { ...inputRef.current, survivorship };
                       setInput(next);
                       inputRef.current = next;
                     }}

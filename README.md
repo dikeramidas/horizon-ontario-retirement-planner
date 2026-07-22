@@ -29,7 +29,7 @@ npm run dev
 
 Open the URL Vite prints (default [http://localhost:5173/](http://localhost:5173/)).
 
-On first open the sample couple is **analyzed automatically** (lifetime path + tax strategy vs naive). Use **Run full plan** after edits; **Market stress test** runs Monte Carlo.
+On first open the sample couple is **analyzed automatically** (lifetime path + tax strategy vs naive). Use **Run full plan** after edits; **Market stress test** runs Monte Carlo. After a full plan, **Longevity scenarios** compare both-live vs first death at ages 75/85/95.
 
 Simulation years are full calendar years from **January 1**. If you open the app mid-year, the default start year is **next** January 1.
 

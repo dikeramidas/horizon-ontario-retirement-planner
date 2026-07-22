@@ -1488,7 +1488,8 @@ table.cash tr:hover td {
 }
 
 .shortfall-panel,
-.spend-to-zero-panel {
+.spend-to-zero-panel,
+.longevity-panel {
   margin: 0.75rem 0 1rem;
   padding: 0.85rem 1rem;
   border-radius: 14px;
@@ -1499,12 +1500,39 @@ table.cash tr:hover td {
   border-color: rgba(61, 231, 255, 0.3);
   background: rgba(61, 231, 255, 0.05);
 }
+.longevity-panel {
+  border-color: rgba(200, 245, 66, 0.28);
+  background: rgba(200, 245, 66, 0.05);
+}
 .shortfall-panel h3,
-.spend-to-zero-panel h3 {
+.spend-to-zero-panel h3,
+.longevity-panel h3 {
   margin: 0 0 0.35rem;
   font-family: var(--font-display);
   font-weight: 400;
   font-size: 1.2rem;
+}
+.longevity-panel .longevity-baseline {
+  background: rgba(61, 231, 255, 0.06);
+}
+.longevity-panel .data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+.longevity-panel .data-table th,
+.longevity-panel .data-table td {
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.longevity-panel .data-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 .shortfall-levers {
   list-style: none;

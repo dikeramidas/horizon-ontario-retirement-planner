@@ -13,7 +13,8 @@ export type GlossaryKey =
   | "successRate"
   | "naive"
   | "spendToZero"
-  | "estateTax";
+  | "estateTax"
+  | "longevity";
 
 export interface GlossaryEntry {
   term: string;
@@ -82,6 +83,12 @@ export const GLOSSARY: Record<GlossaryKey, GlossaryEntry> = {
     short: "Extra tax from deeming registered accounts and unregistered gains at the end of the plan.",
     detail:
       "Shown in year-of (nominal) dollars. After-tax estate (real) already subtracts this. Model uses a simplified unsplit final-year baseline.",
+  },
+  longevity: {
+    term: "Longevity scenarios",
+    short: "Side-by-side expected paths if both live to the horizon vs one spouse dies first at chosen ages.",
+    detail:
+      "Uses your current tax-strategy pins; survivor spend can step down. Not a stochastic life table or insurance product.",
   },
 };
 

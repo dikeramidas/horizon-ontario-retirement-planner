@@ -11,6 +11,7 @@ describe("glossary", () => {
       "nominal",
       "real",
       "estateTax",
+      "longevity",
     ] as const) {
       expect(GLOSSARY[key].term.length).toBeGreaterThan(2);
       expect(GLOSSARY[key].short.length).toBeGreaterThan(10);

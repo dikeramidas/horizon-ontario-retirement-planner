@@ -332,12 +332,13 @@ Engine re-verification against CRA / Ontario / FSRA is an ongoing maintenance du
 | CPP×OAS start-age grid | Bounded expected-path search |
 | Scenario compare, sensitivity, spend-to-zero | UI tools |
 | GitHub Pages demo + CI | Open-source packaging |
+| Longevity scenario grid | Deterministic both-live vs first-death at ages 75/85/95 (strategy pins held fixed) |
 
 ### 16.2 Still open (v2+)
 
 | Item | Notes |
 |------|--------|
-| Stochastic longevity / joint-life curves | Beyond fixed first-death year |
+| Stochastic life tables / insurance products | Deterministic longevity scenario grid (ages 75/85/95) is shipped; full actuarial joint-life remains open |
 | Stock/ETF holdings + auto µ/σ | Account-level returns only today |
 | Full CPP/OAS multi-objective optimizer | Grid exists; not MC-aware global search |
 | Probate/EAT, RESP, FHSA, spousal RRSP, CPP assignment | |
