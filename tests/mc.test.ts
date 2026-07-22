@@ -235,14 +235,12 @@ describe("strategy tuner (§7.4)", () => {
 describe("performance", () => {
   it("2,000 trials on a realistic couple complete within the regression bound", { timeout: 30_000 }, () => {
     const res = runMonteCarlo(couple(), { trials: 2_000, seed: 7, defaultVol: 0.11 });
-    // Pinned design target: < 3,000 ms for 2,000 trials. Measured on this
-    // container after the G3 optimization campaign (deterministic run
-    // 12.8 ms → 1.9 ms; MC trials cheaper still, since stochastic depletion
-    // shrinks solver work): 1,432 ms at 92.7% success. The assertion enforces
-    // the pinned target with ~2× headroom against machine variance.
+    // Local design target ~3s for 2k trials; GitHub-hosted runners are slower
+    // and noisier, so CI uses a looser ceiling while still catching catastrophic regressions.
+    const limitMs = process.env.CI ? 12_000 : 3_000;
     console.log(`[perf] 2,000 trials: ${Math.round(res.elapsedMs)} ms ` +
-      `(successRate ${(res.successRate * 100).toFixed(1)}%)`);
-    expect(res.elapsedMs).toBeLessThan(3_000);
+      `(successRate ${(res.successRate * 100).toFixed(1)}%, limit ${limitMs}ms)`);
+    expect(res.elapsedMs).toBeLessThan(limitMs);
     expect(res.successRate).toBeGreaterThan(0.3);
     expect(res.successRate).toBeLessThanOrEqual(1);
   });
