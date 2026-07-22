@@ -7,6 +7,10 @@ optimization, RRSP/RRIF meltdown strategy, and seeded Monte Carlo.
 
 **Estimates, not advice.**
 
+## License
+
+This project is open source under the [MIT License](LICENSE).
+
 ## Run the app
 
 ```bash
