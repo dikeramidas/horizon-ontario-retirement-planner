@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-label="Horizon demo preview">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b0d14"/>
+      <stop offset="55%" stop-color="#141824"/>
+      <stop offset="100%" stop-color="#1a2438"/>
+    </linearGradient>
+    <linearGradient id="lime" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#c8f542"/>
+      <stop offset="100%" stop-color="#3de7ff"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="18" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1200" height="640" fill="url(#bg)"/>
+  <circle cx="980" cy="120" r="160" fill="#c8f542" opacity="0.08" filter="url(#soft)"/>
+  <circle cx="180" cy="520" r="200" fill="#3de7ff" opacity="0.07" filter="url(#soft)"/>
+  <text x="72" y="88" fill="#c8f542" font-family="system-ui,Segoe UI,sans-serif" font-size="18" font-weight="600" letter-spacing="4">ONTARIO · COUPLE · LIFECYCLE</text>
+  <text x="72" y="168" fill="#e8eaf6" font-family="Georgia,serif" font-size="72">Horizon</text>
+  <text x="72" y="210" fill="rgba(232,234,246,0.7)" font-family="system-ui,Segoe UI,sans-serif" font-size="22">Ontario couple retirement planner · estimates, not advice</text>
+
+  <rect x="72" y="260" width="320" height="280" rx="18" fill="rgba(18,20,32,0.85)" stroke="rgba(255,255,255,0.1)"/>
+  <text x="96" y="300" fill="#c8f542" font-family="system-ui,sans-serif" font-size="14" font-weight="600">YOUR PLAN</text>
+  <rect x="96" y="320" width="120" height="28" rx="14" fill="rgba(200,245,66,0.2)" stroke="#c8f542"/>
+  <text x="112" y="339" fill="#c8f542" font-family="system-ui,sans-serif" font-size="12">Lifestyle</text>
+  <rect x="226" y="320" width="100" height="28" rx="14" fill="rgba(255,255,255,0.06)"/>
+  <text x="244" y="339" fill="rgba(232,234,246,0.55)" font-family="system-ui,sans-serif" font-size="12">Spouse A</text>
+  <rect x="96" y="368" width="272" height="14" rx="4" fill="rgba(255,255,255,0.08)"/>
+  <rect x="96" y="394" width="220" height="14" rx="4" fill="rgba(255,255,255,0.06)"/>
+  <rect x="96" y="420" width="248" height="14" rx="4" fill="rgba(255,255,255,0.06)"/>
+  <rect x="96" y="468" width="272" height="40" rx="10" fill="#c8f542"/>
+  <text x="156" y="494" fill="#0b0d14" font-family="system-ui,sans-serif" font-size="15" font-weight="600">Run full plan</text>
+
+  <rect x="420" y="260" width="708" height="280" rx="18" fill="rgba(18,20,32,0.85)" stroke="rgba(255,255,255,0.1)"/>
+  <text x="448" y="300" fill="#3de7ff" font-family="system-ui,sans-serif" font-size="14" font-weight="600">RESULTS</text>
+  <rect x="448" y="320" width="200" height="88" rx="12" fill="rgba(61,231,255,0.08)" stroke="rgba(61,231,255,0.25)"/>
+  <text x="468" y="352" fill="rgba(232,234,246,0.55)" font-family="system-ui,sans-serif" font-size="12">Funding</text>
+  <text x="468" y="384" fill="#c8f542" font-family="system-ui,sans-serif" font-size="22" font-weight="600">Path funded</text>
+  <rect x="668" y="320" width="200" height="88" rx="12" fill="rgba(200,245,66,0.06)" stroke="rgba(200,245,66,0.22)"/>
+  <text x="688" y="352" fill="rgba(232,234,246,0.55)" font-family="system-ui,sans-serif" font-size="12">Estate (real)</text>
+  <text x="688" y="384" fill="#e8eaf6" font-family="system-ui,sans-serif" font-size="22" font-weight="600">$2.4M</text>
+  <rect x="888" y="320" width="208" height="88" rx="12" fill="rgba(255,77,154,0.06)" stroke="rgba(255,77,154,0.22)"/>
+  <text x="908" y="352" fill="rgba(232,234,246,0.55)" font-family="system-ui,sans-serif" font-size="12">Tax saved</text>
+  <text x="908" y="384" fill="#ff4d9a" font-family="system-ui,sans-serif" font-size="22" font-weight="600">$180k</text>
+
+  <polyline fill="none" stroke="url(#lime)" stroke-width="3" points="460,520 520,500 580,505 640,470 700,480 760,445 820,455 880,420 940,430 1000,410 1060,400"/>
+  <text x="448" y="560" fill="rgba(232,234,246,0.45)" font-family="system-ui,sans-serif" font-size="13">Tax-aware path · Monte Carlo · Longevity scenarios · Client-side only</text>
+</svg>

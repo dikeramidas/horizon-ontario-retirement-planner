@@ -5,6 +5,20 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-07-22
+
+### Added
+- First-run **onboarding tour** (skippable; replay via **Tour**).
+- **Demo banner** on GitHub Pages (`vX.Y.Z · estimates, not advice`).
+- Mobile sticky **Run full plan / Stress test** bar and responsive layout polish.
+- Branded **Print / PDF** summary HTML (masthead, version, stronger disclaimer).
+- Demo preview image (`docs/demo-preview.svg`) for README.
+- GitHub topics for discoverability.
+
+### Changed
+- App version surface (`APP_RELEASE_LABEL`) in header/footer/export.
+- Changelog compare links use real git tags.
+
 ## [1.3.0] — 2026-07-22
 
 ### Added
@@ -39,7 +53,9 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/).
 - Federal + Ontario tax engine, simulate path, Monte Carlo, banded C strategy, TFSA L1–L4, person policy.
 - Scenarios, export, drawdown tables, spend-to-zero, sensitivity, survivorship (scoped), housing and other optional modules.
 
-[Unreleased]: https://github.com/dikeramidas/horizon-ontario-retirement-planner/compare/main...HEAD
-[1.2.0]: https://github.com/dikeramidas/horizon-ontario-retirement-planner/commits/main
-[1.1.0]: https://github.com/dikeramidas/horizon-ontario-retirement-planner/commits/main
-[1.0.0]: https://github.com/dikeramidas/horizon-ontario-retirement-planner/commits/main
+[Unreleased]: https://github.com/dikeramidas/horizon-ontario-retirement-planner/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/dikeramidas/horizon-ontario-retirement-planner/compare/v1.3.0...v1.4.0
+[1.3.0]: https://github.com/dikeramidas/horizon-ontario-retirement-planner/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/dikeramidas/horizon-ontario-retirement-planner/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/dikeramidas/horizon-ontario-retirement-planner/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/dikeramidas/horizon-ontario-retirement-planner/releases/tag/v1.0.0

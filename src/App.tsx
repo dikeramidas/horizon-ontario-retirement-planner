@@ -48,6 +48,12 @@ import { AdvancedPlanOptions } from "./components/AdvancedPlanOptions";
 import { SensitivityPanel } from "./components/SensitivityPanel";
 import { UnitBadge } from "./components/UnitBadge";
 import { GlossaryTip } from "./components/GlossaryTip";
+import { DemoBanner } from "./components/DemoBanner";
+import {
+  OnboardingWizard,
+  shouldShowOnboarding,
+} from "./components/OnboardingWizard";
+import { APP_RELEASE_LABEL } from "./lib/appMeta";
 import { useHashRoute, parseDrawdownRoute } from "./lib/hashRoute";
 import { saveLastPlan } from "./lib/lastPlanStore";
 import { initialPlanState, saveDraft } from "./lib/draftStore";
@@ -153,6 +159,7 @@ export function App() {
       return false;
     }
   });
+  const [showOnboarding, setShowOnboarding] = useState(() => shouldShowOnboarding());
   const inputRef = useRef(input);
   inputRef.current = input;
   const abortRef = useRef<AbortController | null>(null);
@@ -730,9 +737,11 @@ export function App() {
 
   return (
     <div className={`app${comfortableTables ? " comfortable-tables" : ""}`}>
+      <OnboardingWizard open={showOnboarding} onClose={() => setShowOnboarding(false)} />
+      <DemoBanner />
       <header className="topbar">
         <div className="brand">
-          <div className="brand-mark">Ontario · couple · lifecycle</div>
+          <div className="brand-mark">Ontario · couple · lifecycle · {APP_RELEASE_LABEL}</div>
           <h1>
             <em>Horizon</em>
           </h1>
@@ -763,6 +772,15 @@ export function App() {
           <button type="button" className="btn btn-ghost" onClick={onResetSample} data-testid="reset-sample">
             Reset sample
           </button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            data-testid="show-onboarding"
+            onClick={() => setShowOnboarding(true)}
+            title="Show welcome tour"
+          >
+            Tour
+          </button>
         </div>
       </header>
 
@@ -772,6 +790,7 @@ export function App() {
           <div>
             Planning estimates under simplified Canadian tax rules (Ontario + federal 2026 baseline).
             Not financial, tax, or legal advice. Confirm material decisions with a qualified professional.
+            {APP_RELEASE_LABEL && <> · {APP_RELEASE_LABEL}</>}
           </div>
         </div>
       </div>
@@ -1730,7 +1749,7 @@ export function App() {
       </div>
 
       <p className="footer-note" data-testid="policy-footer">
-        Horizon · estimates only · tax/policy baseline{" "}
+        Horizon {APP_RELEASE_LABEL} · estimates only · tax/policy baseline{" "}
         <strong>{POLICY_BASELINE.taxYear}</strong> ({POLICY_BASELINE.jurisdiction}, retrieved{" "}
         {POLICY_BASELINE.retrievedOn}) · RRIF / LIF / OAS · see{" "}
         <code>docs/ANNUAL-POLICY-REFRESH.md</code>
@@ -1742,6 +1761,25 @@ export function App() {
           </span>
         ) : null}
       </p>
+
+      <div className="mobile-run-bar" data-testid="mobile-run-bar">
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={running !== "idle" || !validation.ok}
+          onClick={() => onAnalyze(false)}
+        >
+          {running === "analyze" ? "Running…" : "Run full plan"}
+        </button>
+        <button
+          type="button"
+          className="btn"
+          disabled={running !== "idle" || !validation.ok}
+          onClick={() => onMonteCarlo()}
+        >
+          {running === "mc" ? "MC…" : "Stress test"}
+        </button>
+      </div>
     </div>
   );
 }

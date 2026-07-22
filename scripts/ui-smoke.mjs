@@ -29,7 +29,16 @@ page.on("console", (msg) => {
 
 await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
 push("title=" + (await page.title()));
-const h1 = await page.locator("h1").innerText();
+// Dismiss first-run tour if present (does not block auto-analyze, but can cover UI)
+const onboard = page.getByTestId("onboarding-wizard");
+if (await onboard.count().then((n) => n > 0).catch(() => false)) {
+  const skip = page.getByTestId("onboard-skip");
+  if (await skip.isVisible().catch(() => false)) {
+    await skip.click();
+    push("onboarding_skipped=1");
+  }
+}
+const h1 = await page.locator("h1").first().innerText();
 push("h1=" + h1);
 const disclaimer = await page.getByTestId("disclaimer").innerText();
 push("disclaimer_has_estimates=" + /estimates/i.test(disclaimer));

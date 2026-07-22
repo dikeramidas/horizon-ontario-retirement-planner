@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/dikeramidas/horizon-ontario-retirement-planner/actions/workflows/ci.yml/badge.svg)](https://github.com/dikeramidas/horizon-ontario-retirement-planner/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/dikeramidas/horizon-ontario-retirement-planner)](https://github.com/dikeramidas/horizon-ontario-retirement-planner/releases)
 
 A full-lifecycle retirement simulator for a two-person Ontario household:
 line-by-line 2026 federal + Ontario tax (surtax, OHP, credits, OAS clawback),
@@ -14,7 +15,9 @@ optimization, RRSP/RRIF meltdown strategy, and seeded Monte Carlo.
 
 **https://dikeramidas.github.io/horizon-ontario-retirement-planner/**
 
-(Deployed from `main` via GitHub Pages. First load analyzes a sample couple automatically.)
+[![Horizon demo preview](docs/demo-preview.svg)](https://dikeramidas.github.io/horizon-ontario-retirement-planner/)
+
+(Deployed from `main` via GitHub Pages. First load runs a short welcome tour and analyzes a sample couple automatically.)
 
 ## License
 

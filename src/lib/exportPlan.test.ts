@@ -20,7 +20,8 @@ describe("exportPlan", () => {
     expect(html).toContain("2026");
     expect(html).toContain("Alex");
     expect(html).toMatch(/After-tax estate|estate/i);
-    expect(html).toContain("estimates only");
+    expect(html).toMatch(/estimates/i);
+    expect(html).toMatch(/v\d+\.\d+\.\d+/);
 
     const csv = buildCashflowCsv(a.primary);
     const lines = csv.trim().split("\n");

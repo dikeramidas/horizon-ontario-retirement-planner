@@ -1808,3 +1808,231 @@ textarea:focus-visible,
 @media (max-width: 640px) {
   .tornado-row { grid-template-columns: 1fr; }
 }
+
+/* —— Demo banner —— */
+.demo-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.5rem;
+  padding: 0.45rem 0.85rem;
+  margin: -0.35rem 0 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(200, 245, 66, 0.28);
+  background: rgba(200, 245, 66, 0.08);
+  color: var(--fog);
+  font-size: 0.78rem;
+  text-align: center;
+}
+.demo-banner strong {
+  color: var(--lime);
+  font-weight: 600;
+}
+.demo-banner-sep {
+  opacity: 0.45;
+}
+
+/* —— Onboarding wizard —— */
+.onboard-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(5, 7, 12, 0.72);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: rise 0.35s ease both;
+}
+.onboard-card {
+  width: min(28rem, 100%);
+  max-height: min(90vh, 36rem);
+  overflow: auto;
+  background: var(--panel-solid);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 1.25rem 1.35rem 1.15rem;
+}
+.onboard-progress {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.65rem;
+}
+.onboard-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+}
+.onboard-dot.active {
+  background: var(--lime);
+  box-shadow: 0 0 10px rgba(200, 245, 66, 0.5);
+}
+.onboard-dot.done {
+  background: var(--cyan);
+}
+.onboard-step-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fog);
+}
+.onboard-card h2 {
+  margin: 0 0 0.65rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.55rem;
+  color: var(--text);
+}
+.onboard-body {
+  font-size: 0.92rem;
+  color: var(--fog);
+  line-height: 1.55;
+}
+.onboard-body p {
+  margin: 0 0 0.65rem;
+}
+.onboard-list {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+.onboard-list li {
+  margin-bottom: 0.45rem;
+}
+.onboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.15rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+.onboard-actions-right {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+/* —— Mobile sticky run bar —— */
+.mobile-run-bar {
+  display: none;
+}
+
+/* —— Version footer —— */
+.app-version-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--fog);
+  opacity: 0.85;
+}
+
+/* —— Responsive polish —— */
+@media (max-width: 1099px) {
+  .app {
+    padding: 0.85rem 0.85rem 5.5rem;
+  }
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+  }
+  .brand h1 {
+    font-size: clamp(1.85rem, 8vw, 2.6rem);
+  }
+  .brand-tagline {
+    font-size: 0.88rem;
+  }
+  .brand-tagline .nowrap {
+    white-space: normal;
+  }
+  .top-actions {
+    width: 100%;
+  }
+  .top-actions .btn-primary {
+    flex: 1 1 auto;
+    min-height: 2.75rem;
+  }
+  .section-nav {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.4rem;
+    padding-bottom: 0.35rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .section-nav .chip {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .hero-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+  .export-plan-bar {
+    flex-wrap: wrap;
+  }
+  .export-plan-bar .btn {
+    flex: 1 1 auto;
+  }
+  .longevity-panel .data-table {
+    font-size: 0.78rem;
+  }
+  .data-table,
+  .cashflow-table,
+  table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 720px) {
+  .mobile-run-bar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    gap: 0.45rem;
+    padding: 0.55rem 0.75rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
+    background: rgba(11, 13, 20, 0.94);
+    border-top: 1px solid var(--line);
+    backdrop-filter: blur(14px);
+  }
+  .mobile-run-bar .btn {
+    flex: 1;
+    min-height: 2.75rem;
+    font-size: 0.88rem;
+  }
+  .hero-metrics {
+    grid-template-columns: 1fr;
+  }
+  .compare-grid {
+    grid-template-columns: 1fr;
+  }
+  .demo-banner {
+    border-radius: 12px;
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .app {
+    padding-left: 0.65rem;
+    padding-right: 0.65rem;
+  }
+  .status-pill {
+    font-size: 0.72rem;
+  }
+}
+
