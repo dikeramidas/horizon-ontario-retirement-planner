@@ -30,7 +30,7 @@ Horizon projects a **two-person Ontario household** from today through end of pl
 | D2 | **Spending:** one household after-tax target in **today’s dollars**, CPI-indexed along the simulated path. |
 | D3 | **Strategy:** tax-aware **RRSP/RRIF top-up ceiling C** (meltdown heuristic), always compared to **naive C = 0**; not claimed as a global multi-decade optimum. |
 | D4 | **Working savings:** fixed $ or % of salary per account; overflow RRSP → TFSA → unregistered; RRSP refund reinvest toggle. |
-| D5 | **Survivors / first death:** out of scope v1 (both live to horizon). Top v2 item. |
+| D5 | **Survivors / first death:** **scoped support** — optional first-death year with asset rollover, spend step-down, and simplified CPP survivor boost. Stochastic multi-path longevity and full estate/probate law remain roadmap. |
 | D6 | **MC failure:** first year target cannot be funded after exhausting accounts; headline = share of trials that never fail. |
 | D7 | **Client-side only:** Vite + React SPA; no backend; data stays on device; seeded RNG for reproducibility. |
 | D8 | **Product shell:** distinctive non-generic-finance UI (“Horizon”), not a stock banking dashboard. |
@@ -48,7 +48,7 @@ Horizon projects a **two-person Ontario household** from today through end of pl
 |---|-----------|--------|
 | A1 | Horizon = younger spouse turns **95** (UI: 80–105). | |
 | A2 | DC / Group RRSP included (→ LIF). | |
-| A3 | CPP/OAS start ages are **user inputs** (no auto-optimize in v1). | |
+| A3 | CPP/OAS start ages are **user inputs**; UI also offers a **bounded start-age grid** on the expected path (not a global multi-objective optimizer). | |
 | A4 | Unregistered return split: interest / eligible dividends / realized gains (user defaults). Non-eligible dividends, corporations: out of scope. | |
 | A5 | Fees embedded in expected returns (no separate MER field). | |
 | A6 | Default inflation **2.1%** fixed; AR(1) supported in engine, UI exposes fixed rate primarily. | |
@@ -316,25 +316,42 @@ Engine re-verification against CRA / Ontario / FSRA is an ongoing maintenance du
 
 ---
 
-## 16. Out of scope (v1) → v2+ roadmap
+## 16. Roadmap (shipped vs still open)
+
+### 16.1 Shipped since early v1 design (keep docs honest)
 
 | Item | Notes |
 |------|--------|
-| Survivor / first-death | Spousal rollover, CPP survivor, estate at first death — **top v2** |
-| Stock/ETF holdings + auto µ/σ | Account-level returns only in v1; curated ETF or API later |
-| Auto CPP/OAS start optimization | Scenario compare only today |
-| GIS, probate/EAT, RESP, spousal RRSP, CPP assignment | |
+| First-death / survivorship (scoped) | Optional `survivorship` module; not full actuarial joint-life |
+| Banded C + OAS soft-cap + person ceilings | Product `analyzePlan` path |
+| TFSA L1–L4 + L4 share search | Default product level L4 |
+| Housing, spend phases, one-time goals | Advanced plan options |
+| GIS (rough), payroll (approx) | Optional; not full CRA tables |
+| Web Worker | Long jobs off main thread with progress/cancel |
+| Export | Print-friendly HTML + cashflow CSV |
+| CPP×OAS start-age grid | Bounded expected-path search |
+| Scenario compare, sensitivity, spend-to-zero | UI tools |
+| GitHub Pages demo + CI | Open-source packaging |
+
+### 16.2 Still open (v2+)
+
+| Item | Notes |
+|------|--------|
+| Stochastic longevity / joint-life curves | Beyond fixed first-death year |
+| Stock/ETF holdings + auto µ/σ | Account-level returns only today |
+| Full CPP/OAS multi-objective optimizer | Grid exists; not MC-aware global search |
+| Probate/EAT, RESP, FHSA, spousal RRSP, CPP assignment | |
 | Non-eligible dividends, corporate accounts, US withholding | |
-| AMT, full credit transfers, monthly steps | |
-| PDF/CSV export, French UI, multi-user backend | |
-| Web Worker for MC | Optional if UI freezes |
+| AMT, full unused credit transfers, monthly steps | |
+| True wage indexation of limits | CPI proxy in v1 for wage-flagged items |
+| French UI, multi-user backend, branded PDF | HTML/CSV export exists |
 | Global DP tax optimizer | Ceiling C heuristic remains product choice |
 
 ---
 
 ## 17. Explicit simplifications register
 
-Annual steps; mid-year cash flows; same-year OAS clawback; annual (not quarterly) benefit indexation; TFSA smooth indexation; wage limits treated as CPI in v1; returns i.i.d. and independent of inflation; strategy tuned on expected path only; credits at lowest rate; no inter-spousal unused credit transfer; CPP/EI payroll omitted in working years; estate tax unsplit baseline; LIF max table held constant while reference rates keep the 6% floor binding; fees in returns; `taxableIncomePreSplit` used for bracket display (split optimizes tax but year row stores pre-split taxable field).
+Annual steps; mid-year cash flows; same-year OAS clawback; annual (not quarterly) benefit indexation; TFSA smooth indexation; wage limits treated as CPI in v1; returns i.i.d. and independent of inflation; strategy tuned on expected path only (MC pins that policy); credits at lowest rate; no inter-spousal unused credit transfer; CPP/EI payroll optional approx only; GIS rough sketch; estate tax unsplit baseline; LIF max table held constant while reference rates keep the 6% floor binding; fees in returns; `taxableIncomePreSplit` used for bracket display (split optimizes tax but year row stores pre-split taxable field).
 
 ---
 

@@ -1,17 +1,26 @@
 # Horizon — Ontario Couple Retirement Planner
 
+[![CI](https://github.com/dikeramidas/horizon-ontario-retirement-planner/actions/workflows/ci.yml/badge.svg)](https://github.com/dikeramidas/horizon-ontario-retirement-planner/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A full-lifecycle retirement simulator for a two-person Ontario household:
 line-by-line 2026 federal + Ontario tax (surtax, OHP, credits, OAS clawback),
 CPP/OAS timing, RRIF minimums, FSRA LIF maximums, pension-income-split
 optimization, RRSP/RRIF meltdown strategy, and seeded Monte Carlo.
 
-**Estimates, not advice.**
+**Estimates, not advice.** All calculation runs in your browser; household data stays on your device.
+
+## Live demo
+
+**https://dikeramidas.github.io/horizon-ontario-retirement-planner/**
+
+(Deployed from `main` via GitHub Pages. First load analyzes a sample couple automatically.)
 
 ## License
 
-This project is open source under the [MIT License](LICENSE).
+This project is open source under the [MIT License](LICENSE). See [CONTRIBUTING.md](CONTRIBUTING.md) if you’d like to help.
 
-## Run the app
+## Run the app locally
 
 ```bash
 npm install
@@ -32,6 +41,8 @@ npm test
 
 Expect the full suite green (tax anchors, hand-computed household years, FSRA LIF
 caps, Monte Carlo equivalences, UI→engine path, formatters, scenario codec).
+
+CI runs the same `npm test` + `npm run build` on every push and pull request to `main`.
 
 ## Files
 
@@ -57,7 +68,9 @@ caps, Monte Carlo equivalences, UI→engine path, formatters, scenario codec).
 - `tests/*.test.ts` — engine unit and property tests
 - `src/lib/*.test.ts` — UI helpers and engine-entry smoke
 - `retirement-planner-design.md` — product design document
-- `docs/ANNUAL-POLICY-REFRESH.md` — yearly tax/regulation refresh checklist (all required data + sources)
+- `docs/ANNUAL-POLICY-REFRESH.md` — yearly tax/regulation refresh checklist
+- `docs/codebase-guide.html` / `docs/codebase-guide.json` — human + agent codebase maps
+- `.github/workflows/` — CI and GitHub Pages deploy
 
 ## Known approximations (by design, documented in code)
 
