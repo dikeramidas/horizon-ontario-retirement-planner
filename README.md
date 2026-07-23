@@ -75,8 +75,21 @@ CI runs the same `npm test` + `npm run build` on every push and pull request to 
 - `docs/codebase-guide.html` / `docs/codebase-guide.json` — human + agent codebase maps
 - `.github/workflows/` — CI and GitHub Pages deploy
 
+## Documentation
+
+| Doc | Audience |
+|-----|----------|
+| [docs/tax-minimization-memo.md](docs/tax-minimization-memo.md) | How lifetime multi-account tax strategy works (and what it is *not*) |
+| [docs/codebase-guide.html](docs/codebase-guide.html) | Human codebase map |
+| [docs/codebase-guide.json](docs/codebase-guide.json) | Agent-oriented codebase map |
+| [retirement-planner-design.md](retirement-planner-design.md) | Product design |
+| [docs/ANNUAL-POLICY-REFRESH.md](docs/ANNUAL-POLICY-REFRESH.md) | Yearly tax/reg refresh checklist |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Dev setup and conventions |
+| [CHANGELOG.md](CHANGELOG.md) | Release notes |
+
 ## Known approximations (by design, documented in code)
 
+- Strategy search is **funded years → real estate**, not pure tax minimization; meltdown can raise living tax while cutting estate tax (see the tax memo).
 - Estate tax baseline uses each spouse's final-year unsplit income, slightly
   understating estate tax.
 - The pension-split search is a fine grid with a cadence, near-optimal rather

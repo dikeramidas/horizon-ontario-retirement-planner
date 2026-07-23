@@ -1809,6 +1809,20 @@ textarea:focus-visible,
   .tornado-row { grid-template-columns: 1fr; }
 }
 
+/* —— Strategy trust note —— */
+.strategy-trust-note {
+  margin: 0 0 0.85rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(61, 231, 255, 0.22);
+  background: rgba(61, 231, 255, 0.06);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+.strategy-trust-note a {
+  color: var(--cyan);
+}
+
 /* —— Demo banner —— */
 .demo-banner {
   display: flex;

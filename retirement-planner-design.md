@@ -238,12 +238,14 @@ After primary analysis (auto or **Analyze plan**):
 - Tuned: ceiling C, lifetime tax, estate, tax saved vs naive  
 - Naive: lifetime tax, estate, estate gain from tuning  
 
-### 11.3 Why this is the tax-minimizing path
+### 11.3 Why this is the tax-aware path (vs naive)
 
 - Metrics: C, tax saved (living+estate), estate gain, living-year tax Δ  
 - Side-by-side: top-up years, OAS clawback years, peak taxable, share of person-years in federal 29%+ bands  
 - Plain-language bullets **grounded in those metrics**  
-- Disclaimer: heuristic vs C=0, not global optimum  
+- Disclaimer: heuristic vs C=0; objective is funded years → real estate, **not** pure tax min / global optimum  
+- Deeper narrative: `docs/tax-minimization-memo.md`  
+
 
 ### 11.4 Future tax-bracket estimates
 

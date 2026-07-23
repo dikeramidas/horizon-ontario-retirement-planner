@@ -277,6 +277,6 @@ export function buildStrategyWhy(tune: TuneResult): StrategyWhyMetrics {
     shareHighFedBracketNaive,
     reasons,
     disclaimer:
-      "This is the engine's RRSP/RRIF top-up ceiling search vs a no-top-up baseline — a strong planning heuristic, not a proof of the globally optimal multi-decade tax schedule.",
+      "This is the engine's RRSP/RRIF top-up ceiling search vs a no-top-up baseline — a planning heuristic (funded years, then real estate), not a proof of the globally optimal multi-decade tax schedule.",
   };
 }

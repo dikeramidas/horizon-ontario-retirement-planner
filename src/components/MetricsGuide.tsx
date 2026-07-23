@@ -60,6 +60,11 @@ export function MetricsGuide() {
               <GlossaryTip term="topUpCeiling">C = 0</GlossaryTip>).
             </li>
             <li>
+              <strong>Not pure tax minimization</strong> — full-plan search prioritizes funded
+              years, then real after-tax estate. Meltdown often raises living-year tax while
+              reducing estate tax.
+            </li>
+            <li>
               <strong>
                 <GlossaryTip term="nominal">Nominal</GlossaryTip> vs{" "}
                 <GlossaryTip term="real">real</GlossaryTip>
@@ -68,6 +73,18 @@ export function MetricsGuide() {
               net-worth chart are today’s $.
             </li>
           </ul>
+          <p className="hint" style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+            Deeper write-up:{" "}
+            <a
+              href="https://github.com/dikeramidas/horizon-ontario-retirement-planner/blob/main/docs/tax-minimization-memo.md"
+              target="_blank"
+              rel="noreferrer"
+              data-testid="metrics-guide-tax-memo"
+            >
+              lifetime multi-account tax memo
+            </a>
+            .
+          </p>
         </div>
       )}
     </div>

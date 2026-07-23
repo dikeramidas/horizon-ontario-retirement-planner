@@ -1505,6 +1505,21 @@ export function App() {
                     </div>
                   </div>
 
+                  <p className="hint strategy-trust-note" data-testid="strategy-trust-note">
+                    <strong>Tax-aware ≠ global tax minimum.</strong> The engine searches a
+                    meltdown ceiling (and TFSA policy) to maximize <em>funded years</em>, then{" "}
+                    <em>real after-tax estate</em>, vs a no-meltdown baseline. “Tax saved” counts
+                    living + estate tax.{" "}
+                    <a
+                      href="https://github.com/dikeramidas/horizon-ontario-retirement-planner/blob/main/docs/tax-minimization-memo.md"
+                      target="_blank"
+                      rel="noreferrer"
+                      data-testid="tax-memo-link"
+                    >
+                      How lifetime tax strategy works
+                    </a>
+                    .
+                  </p>
                   <div className="compare-grid" data-testid="strategy-compare">
                     <div className="compare-card win">
                       <h3>

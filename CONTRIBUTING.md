@@ -27,6 +27,7 @@ npm run smoke
 | Product analysis | `src/lib/analysis.ts`, `tuneBandedC.ts`, `tfsaPolicy.ts`, `personPolicy.ts` |
 | Tests | `tests/*.test.ts`, `src/lib/*.test.ts` |
 | Design / policy refresh | `retirement-planner-design.md`, `docs/ANNUAL-POLICY-REFRESH.md` |
+| Lifetime tax strategy memo | `docs/tax-minimization-memo.md` |
 | Agent/human codebase guides | `docs/codebase-guide.html`, `docs/codebase-guide.json` |
 
 Prefer pure helpers under `src/lib/` for new analysis. Extend the year loop in `simulate.ts` only when state must live there.

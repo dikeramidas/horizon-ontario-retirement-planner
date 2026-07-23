@@ -5,6 +5,13 @@ Format inspired by [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- Docs/trust polish: in-app strategy note + link to lifetime tax memo; Metrics guide link;
+  README documentation table; tax memo and roadmap notes in codebase guides.
+
+### Changed
+- Tax strategy panel title/copy: “tax-aware” (funded years → estate), not “tax-minimizing.”
+
 ## [1.4.0] — 2026-07-22
 
 ### Added

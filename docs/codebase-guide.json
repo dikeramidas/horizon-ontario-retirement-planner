@@ -2,17 +2,21 @@
   "meta": {
     "title": "Horizon — Ontario Couple Retirement Planner",
     "docType": "codebase-guide-for-agents",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "generatedForDate": "2026-07-22",
     "packageName": "ontario-couple-retirement-planner",
     "primaryLanguage": "TypeScript",
     "framework": "React 19 + Vite 6 + Vitest 3",
     "workspaceRoot": ".",
     "companionHumanDoc": "docs/codebase-guide.html",
+    "appVersionAtGuide": "1.4.0+",
     "relatedDocs": [
       "README.md",
+      "CHANGELOG.md",
+      "CONTRIBUTING.md",
       "retirement-planner-design.md",
       "docs/ANNUAL-POLICY-REFRESH.md",
+      "docs/tax-minimization-memo.md",
       "docs/codebase-guide.html"
     ],
     "disclaimer": "Estimates only — not financial, tax, or legal advice. Engine uses pinned 2026 federal + Ontario policy with documented simplifications.",
@@ -41,6 +45,14 @@
       "Full CRA form fidelity for every credit and form",
       "Stock/ETF ticker portfolio with live market data",
       "Multi-province or non-Ontario tax regimes"
+    ],
+    "strategyObjective": "Lexicographic: maximize funded years, then real after-tax estate (NOT pure tax minimization). See docs/tax-minimization-memo.md.",
+    "recentProductModules": [
+      "longevityScenarios + LongevityPanel (death-age grid)",
+      "spousal unused personal-credit transfer (tax.ts)",
+      "Ontario EAT sketch + couple-aware GIS",
+      "onboarding tour, demo banner, branded PDF export",
+      "GitHub Pages demo + CI"
     ]
   },
 

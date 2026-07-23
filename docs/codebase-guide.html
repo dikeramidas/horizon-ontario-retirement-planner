@@ -149,17 +149,19 @@
 <body>
   <div class="wrap">
     <header>
-      <p class="eyebrow">Horizon · codebase guide v2</p>
+      <p class="eyebrow">Horizon · codebase guide v2.1</p>
       <h1><em>Horizon</em> — how this code works</h1>
       <p class="lead">
         Human-readable map of the Ontario couple retirement planner: architecture, engine,
         tax strategy, year loop, Monte Carlo, UI, tests, and conventions for maintainers.
         Machine-readable companion for agents:
         <a href="codebase-guide.json"><code>codebase-guide.json</code></a>.
+        Lifetime tax strategy narrative:
+        <a href="tax-minimization-memo.md"><code>tax-minimization-memo.md</code></a>.
       </p>
       <p class="muted" style="margin-top:0.75rem;font-size:0.9rem;">
         Package <code>ontario-couple-retirement-planner</code> · React 19 + Vite 6 + TypeScript ·
-        Client-only · Policy baseline 2026 · Doc date 2026-07-22 · Guide version 2.0.0
+        Client-only · Policy baseline 2026 · App ~v1.4+ · Guide version 2.1.0
       </p>
     </header>
 
@@ -365,6 +367,7 @@ npm run smoke        # Playwright smoke against dev server</pre>
         “Run full plan” does <strong>not</strong> claim a global tax optimum. It runs a
         <strong>lexicographic search</strong>: maximize <em>funded years</em>, then
         <em>real after-tax estate</em>. Tax savings are a derived metric, not the sole objective.
+        Full narrative: <a href="tax-minimization-memo.md">tax-minimization-memo.md</a>.
       </p>
       <pre class="flow">analyzePlan(household)
   ├─ validateHousehold

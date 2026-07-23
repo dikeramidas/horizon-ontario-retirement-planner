@@ -32,11 +32,13 @@ export function TaxStrategyExplain({
     <div className="tax-explain" data-testid="tax-strategy-explain">
       <div className="chart-wrap">
         <h3>
-          Why this is the tax-minimizing path (vs{" "}
+          Why this tax-aware path (vs{" "}
           <GlossaryTip term="naive">no meltdown</GlossaryTip>)
         </h3>
         <p className="hint" style={{ marginTop: 0 }}>
-          {why.disclaimer}
+          {why.disclaimer} Search objective: maximize <strong>funded years</strong>, then{" "}
+          <strong>real after-tax estate</strong> — not pure lifetime tax. Living tax can rise
+          under meltdown while estate tax falls.
         </p>
 
         <div className="hero-metrics why-metrics" data-testid="tax-why-metrics">
