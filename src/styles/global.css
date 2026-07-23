@@ -1534,6 +1534,17 @@ table.cash tr:hover td {
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
+.longevity-subhead {
+  margin: 1rem 0 0.4rem;
+  font-size: 0.95rem;
+  color: var(--cyan);
+  font-weight: 600;
+}
+.longevity-stoch-results {
+  margin-top: 0.35rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--line);
+}
 .shortfall-levers {
   list-style: none;
   margin: 0.65rem 0 0;

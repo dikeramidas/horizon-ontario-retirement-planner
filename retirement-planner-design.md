@@ -343,7 +343,7 @@ Engine re-verification against CRA / Ontario / FSRA is an ongoing maintenance du
 
 | Item | Notes |
 |------|--------|
-| Stochastic life tables / insurance products | Deterministic longevity scenario grid (ages 75/85/95) is shipped; full actuarial joint-life remains open |
+| Official life tables / insurance products / shared frailty | Stochastic longevity uses a Gompertz-style independent-spouse sketch + fixed-age grid; not CIA/StatsCan tables |
 | Stock/ETF holdings + auto µ/σ | Account-level returns only today |
 | Full CPP/OAS multi-objective optimizer | Grid exists; not MC-aware global search |
 | Probate/EAT, RESP, FHSA, spousal RRSP, CPP assignment | |

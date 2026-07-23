@@ -14,7 +14,8 @@ export type GlossaryKey =
   | "naive"
   | "spendToZero"
   | "estateTax"
-  | "longevity";
+  | "longevity"
+  | "stochasticLongevity";
 
 export interface GlossaryEntry {
   term: string;
@@ -88,7 +89,13 @@ export const GLOSSARY: Record<GlossaryKey, GlossaryEntry> = {
     term: "Longevity scenarios",
     short: "Side-by-side expected paths if both live to the horizon vs one spouse dies first at chosen ages.",
     detail:
-      "Uses your current tax-strategy pins; survivor spend can step down. Not a stochastic life table or insurance product.",
+      "Uses your current tax-strategy pins; survivor spend can step down. Pair with stochastic mortality trials for random death ages.",
+  },
+  stochasticLongevity: {
+    term: "Stochastic longevity",
+    short: "Many trials with random death ages (independent spouses) on the expected-return path.",
+    detail:
+      "Gompertz-style annual hazard sketch — not an official life table. Strategy pins fixed; reports funding success and estate percentiles.",
   },
 };
 
